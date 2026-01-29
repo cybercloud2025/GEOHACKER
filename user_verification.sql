@@ -21,20 +21,24 @@ CREATE OR REPLACE FUNCTION register_employee_with_code(
     p_pin TEXT,
     p_email TEXT,
     p_avatar_url TEXT,
-    p_invite_code TEXT
+    p_invite_code TEXT,
+    p_verified BOOLEAN DEFAULT false
 )
-RETURNS JSONB AS $$
+RETURNS JSONB AS $function$
 DECLARE
     v_admin_id UUID;
+    v_admin_email TEXT;
     v_new_id UUID;
     v_new_invite_code TEXT := NULL;
     v_is_verified BOOLEAN := false;
 BEGIN
     -- Buscar Admin por código
-    SELECT id INTO v_admin_id FROM employees WHERE invite_code = p_invite_code AND role = 'admin';
+    SELECT id, employee_email INTO v_admin_id, v_admin_email 
+    FROM employees 
+    WHERE invite_code = p_invite_code AND role = 'admin';
     
     IF v_admin_id IS NOT NULL THEN
-        -- Registrar como Empleado (NO VERIFICADO por defecto)
+        -- Registrar como Empleado
         INSERT INTO employees (
             first_name, last_name, pin_hash, pin_text, role, employee_email, avatar_url, admin_id, verified
         ) VALUES (
@@ -46,16 +50,25 @@ BEGIN
             p_email, 
             p_avatar_url,
             v_admin_id,
-            false -- Temporal
+            p_verified -- Usar el parámetro (por defecto false)
         ) RETURNING id INTO v_new_id;
         
-        RETURN jsonb_build_object('id', v_new_id, 'role', 'employee', 'admin_id', v_admin_id, 'verified', false);
+        RETURN jsonb_build_object(
+            'id', v_new_id, 
+            'role', 'employee', 
+            'admin_id', v_admin_id, 
+            'admin_email', v_admin_email,
+            'verified', p_verified
+        );
     
     ELSE
         -- Registrar como Nuevo Admin
         IF p_invite_code = 'NEW' OR p_invite_code IS NULL THEN
              v_new_invite_code := 'CORP-' || UPPER(SUBSTRING(md5(random()::text), 1, 4));
              
+             -- Notify Master Admin
+             SELECT employee_email INTO v_admin_email FROM employees WHERE invite_code = 'CORP-18EC';
+
              INSERT INTO employees (
                 first_name, last_name, pin_hash, pin_text, role, employee_email, avatar_url, invite_code, verified
              ) VALUES (
@@ -67,20 +80,26 @@ BEGIN
                 p_email, 
                 p_avatar_url,
                 v_new_invite_code,
-                false -- Los admins que se registran directo los dejamos como NO VERIFICADOS (Temporal)
+                p_verified -- Usar el parámetro
              ) RETURNING id INTO v_new_id;
              
-             RETURN jsonb_build_object('id', v_new_id, 'role', 'admin', 'invite_code', v_new_invite_code, 'verified', false);
+             RETURN jsonb_build_object(
+                'id', v_new_id, 
+                'role', 'admin', 
+                'invite_code', v_new_invite_code, 
+                'admin_email', v_admin_email,
+                'verified', p_verified
+             );
         ELSE
             RAISE EXCEPTION 'Código de organización inválido.';
         END IF;
     END IF;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$function$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 4. Actualizar login_with_pin para devolver el estado de verificación
 CREATE OR REPLACE FUNCTION login_with_pin(p_pin TEXT)
-RETURNS JSONB AS $$
+RETURNS JSONB AS $function$
 DECLARE
   v_employee RECORD;
 BEGIN
@@ -100,4 +119,4 @@ BEGIN
 
   RETURN NULL;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$function$ LANGUAGE plpgsql SECURITY DEFINER;

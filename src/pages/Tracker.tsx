@@ -146,13 +146,13 @@ export const TrackerPage = () => {
                         </div>
 
                         {!employee?.verified && (
-                            <div className="flex flex-col gap-1 mb-2">
-                                <p className="text-yellow-500 text-[10px] font-black uppercase tracking-tighter animate-pulse flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-                                    Acceso Restringido - Esperando Verificación
+                            <div className="flex flex-col gap-1.5 mt-2 p-2 bg-yellow-500/5 border border-yellow-500/20 rounded-lg backdrop-blur-sm">
+                                <p className="text-yellow-500 text-[10px] font-black uppercase tracking-widest animate-pulse flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]" />
+                                    ESTADO: VERIFICACIÓN PENDIENTE
                                 </p>
-                                <p className="text-white/40 text-[9px] leading-tight max-w-[200px]">
-                                    Un administrador debe validar tu cuenta antes de que puedas comenzar a fichar.
+                                <p className="text-white/60 text-[9px] leading-tight max-w-[220px] font-medium">
+                                    Tu acceso está en modo <span className="text-yellow-500/80 font-bold">LECTURA</span>. Solicita a un administrador que valide tu perfil para desbloquear el sistema de fichaje.
                                 </p>
                             </div>
                         )}

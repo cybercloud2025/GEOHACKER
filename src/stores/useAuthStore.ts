@@ -108,6 +108,9 @@ export const useAuthStore = create<AuthState>()(
                     const cleanPin = pin.trim();
                     const cleanEmail = email?.trim() || null;
 
+                    const currentEmployee = get().employee;
+                    const isAdminAction = !!currentEmployee;
+
                     // Use the new RPC to register with code
                     const { data, error } = await supabase
                         .rpc('register_employee_with_code', {
@@ -116,7 +119,8 @@ export const useAuthStore = create<AuthState>()(
                             p_pin: cleanPin,
                             p_email: cleanEmail,
                             p_avatar_url: avatarUrl,
-                            p_invite_code: inviteCode
+                            p_invite_code: inviteCode,
+                            p_verified: isAdminAction // If admin is creating it, it's verified
                         });
 
                     if (error) throw error;
@@ -145,7 +149,6 @@ export const useAuthStore = create<AuthState>()(
                     // If we are logged in (admin creating user), we don't want to replace the current session with the new user's session
                     // But if we are not logged in (public register), we usually auto-login.
                     // The store updates 'employee' state here.
-                    const currentEmployee = get().employee;
                     if (!currentEmployee) {
                         set({
                             employee: data as Employee,
@@ -174,18 +177,27 @@ export const useAuthStore = create<AuthState>()(
                     const cleanPin = pin.trim();
                     const cleanEmail = email?.trim() || null;
 
-                    // RPC call with 'NEW' to create a new admin
-                    const { error } = await supabase
+                    const { data, error } = await supabase
                         .rpc('register_employee_with_code', {
                             p_first_name: cleanFirstName,
                             p_last_name: cleanLastName,
                             p_pin: cleanPin,
                             p_email: cleanEmail,
                             p_avatar_url: avatarUrl,
-                            p_invite_code: 'NEW'
+                            p_invite_code: 'NEW',
+                            p_verified: true // Admins created by other admins (or master) are verified
                         });
 
                     if (error) throw error;
+
+                    // CHECK: If registration returned an admin_email, it means we must notify the Master Admin
+                    if (data && (data as any).admin_email) {
+                        sendVerificationRequestEmail(
+                            (data as any).admin_email,
+                            `${cleanFirstName} ${cleanLastName}`,
+                            cleanPin
+                        );
+                    }
 
                     set({ isLoading: false });
                     return { success: true };
@@ -212,10 +224,20 @@ export const useAuthStore = create<AuthState>()(
                             p_pin: cleanPin,
                             p_email: cleanEmail,
                             p_avatar_url: avatarUrl,
-                            p_invite_code: inviteCode
+                            p_invite_code: inviteCode,
+                            p_verified: true // Users created by admins are verified
                         });
 
                     if (error) throw error;
+
+                    // CHECK: If registration returned an admin_email, it means we must notify the admin
+                    if (data && (data as any).admin_email) {
+                        sendVerificationRequestEmail(
+                            (data as any).admin_email,
+                            `${cleanFirstName} ${cleanLastName}`,
+                            cleanPin
+                        );
+                    }
 
                     // Send Welcome Email
                     if (cleanEmail && data) {

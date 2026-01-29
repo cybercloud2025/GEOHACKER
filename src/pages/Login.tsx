@@ -43,7 +43,7 @@ export const LoginPage = () => {
             const timeDiff = now - clickState.lastClick;
 
             // If more than 2 seconds passed, reset count
-            let newCount = (timeDiff > 2000) ? 1 : clickState.count + 1;
+            const newCount = (timeDiff > 2000) ? 1 : clickState.count + 1;
 
             if (newCount >= 4) {
                 setShowSecretMode(true);
@@ -498,7 +498,6 @@ export const LoginPage = () => {
                 )}
             </AnimatePresence>
 
-            {/* BETA BADGE - MOVED TO BOTTOM */}
 
         </div>
     );

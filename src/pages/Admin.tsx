@@ -357,8 +357,8 @@ export const AdminPage = () => {
 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(24);
-            doc.setTextColor(0, 0, 0); // Black for "GEO HACKER"
-            doc.text("GEO HACKER", 42, 22);
+            doc.setTextColor(0, 0, 0); // Black for "ACCESO AL SISTEMA"
+            doc.text("REPORTE CORPORATIVO", 42, 22);
 
             doc.setFont("helvetica", "normal");
             doc.setFontSize(10);
@@ -537,7 +537,7 @@ export const AdminPage = () => {
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(24);
                 doc.setTextColor(0, 0, 0);
-                doc.text("GEO HACKER", 42, 22);
+                doc.text("REPORTE CORPORATIVO", 42, 22);
 
                 doc.setFont("helvetica", "normal");
                 doc.setFontSize(10);
@@ -699,7 +699,7 @@ export const AdminPage = () => {
             <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col items-center text-center mb-12 gap-8">
                     <div className="flex flex-col items-center">
-                        <h1 className="text-5xl font-black text-white mb-2 tracking-tight">Panel de Control</h1>
+                        <h1 className="text-5xl font-black text-white mb-2 tracking-tight">PANEL DE CONTROL</h1>
                         <p className="text-muted font-medium text-lg">Gestión de tiempos y empleados</p>
 
                         {(employee as any)?.invite_code && (

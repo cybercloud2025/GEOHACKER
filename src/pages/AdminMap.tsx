@@ -91,7 +91,7 @@ export const AdminMapPage = () => {
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <h1 className="text-black font-black uppercase italic tracking-tighter">
-                        GEO-TRACKER ADMIN // {entry.employee_name}
+                        PANEL DE MAPA // {entry.employee_name}
                     </h1>
                 </div>
                 <div className="font-mono text-[10px] text-black bg-black/10 px-2 py-1 rounded">
