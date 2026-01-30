@@ -101,8 +101,7 @@ export const TrackerPage = () => {
                 </GoogleMapWrapper>
             </div>
 
-            {/* SUBTLE LIGHT VIGNETTE */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-white/40 pointer-events-none z-10" />
+            {/* NO OVERLAYS - CLEAN MAP */}
 
             {/* TOP BAR / SYSTEM INFO */}
             <div className="absolute top-0 left-0 right-0 z-30 p-4 md:p-6 flex flex-col items-start pointer-events-none">
@@ -194,7 +193,7 @@ export const TrackerPage = () => {
             </div>
 
             {/* --- BOTTOM OPERATIONAL CENTER --- */}
-            <div className="absolute bottom-0 left-0 right-0 z-40 p-6 md:p-12 flex flex-col items-center gap-8 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none">
+            <div className="absolute bottom-0 left-0 right-0 z-40 p-6 md:p-12 flex flex-col items-center gap-8 pointer-events-none">
 
                 {/* IDLE TIMER - Light Style */}
                 <AnimatePresence>
