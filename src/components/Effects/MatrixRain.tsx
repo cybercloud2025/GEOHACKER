@@ -10,57 +10,62 @@ export const MatrixRain = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Set canvas to full screen
+        let frameId: number;
+        let lastTime = 0;
+        const fps = 30;
+        const interval = 1000 / fps;
+
         const resize = () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            initDrops();
         };
-        window.addEventListener('resize', resize);
-        resize();
 
-        // Matrix characters (Katakana + Numbers)
-        const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱGEZE DEBE PEオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const charArray = chars.split('');
-
         const fontSize = 14;
-        const columns = canvas.width / fontSize;
+        let drops: number[] = [];
 
-        // Array of drops - one per column
-        const drops: number[] = [];
-        for (let i = 0; i < columns; i++) {
-            drops[i] = 1;
-        }
+        const initDrops = () => {
+            // Optimization: Fewer columns on mobile to reduce draw calls
+            const isMobile = window.innerWidth < 768;
+            const step = isMobile ? fontSize * 2 : fontSize;
+            const columns = canvas.width / step;
+            drops = new Array(Math.ceil(columns)).fill(1);
+        };
 
-        const draw = () => {
-            // Black BG for the trail effect
+        const draw = (timestamp: number) => {
+            frameId = requestAnimationFrame(draw);
+
+            const elapsed = timestamp - lastTime;
+            if (elapsed < interval) return;
+            lastTime = timestamp - (elapsed % interval);
+
             ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#0F0'; // Neon Green
             ctx.font = `${fontSize}px monospace`;
+            const isMobile = window.innerWidth < 768;
+            const step = isMobile ? fontSize * 2 : fontSize;
 
             for (let i = 0; i < drops.length; i++) {
                 const text = charArray[Math.floor(Math.random() * charArray.length)];
+                ctx.fillStyle = Math.random() > 0.95 ? '#CCFF00' : '#00FF41';
+                ctx.fillText(text, i * step, drops[i] * fontSize);
 
-                // Random brightness variation for "glitchy" look
-                ctx.fillStyle = Math.random() > 0.95 ? '#CCFF00' : '#00FF41'; // Mix of requester's yellow and matrix green
-
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-                // Sending the drop back to the top randomly after it has crossed the screen
                 if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
                     drops[i] = 0;
                 }
-
-                // Increment Y coordinate
                 drops[i]++;
             }
         };
 
-        const interval = setInterval(draw, 33);
+        window.addEventListener('resize', resize);
+        resize();
+        frameId = requestAnimationFrame(draw);
 
         return () => {
-            clearInterval(interval);
+            cancelAnimationFrame(frameId);
             window.removeEventListener('resize', resize);
         };
     }, []);

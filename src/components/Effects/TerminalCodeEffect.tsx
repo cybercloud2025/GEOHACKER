@@ -39,7 +39,6 @@ interface TypingStream {
     color: string;
 }
 
-
 const COLORS = [
     'text-[#39FF14]', // Neon Green
     'text-blue-400',   // Cyber Blue
@@ -54,6 +53,10 @@ export const TerminalCodeEffect = () => {
     const nextId = useRef(0);
 
     useEffect(() => {
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+        const maxStreams = isMobile ? 8 : 15;
+        const spawnTime = isMobile ? 3000 : 2000;
+
         const spawnStream = () => {
             const snippet = SNIPPETS[Math.floor(Math.random() * SNIPPETS.length)];
             const newStream: TypingStream = {
@@ -65,23 +68,32 @@ export const TerminalCodeEffect = () => {
                 isCompleted: false,
                 color: COLORS[Math.floor(Math.random() * COLORS.length)]
             };
-            setStreams(prev => [...prev, newStream].slice(-15));
+            setStreams(prev => [...prev, newStream].slice(-maxStreams));
         };
 
-        const spawnInterval = setInterval(spawnStream, 2000); // Slower spawning
+        const spawnInterval = setInterval(spawnStream, spawnTime);
         spawnStream();
         return () => clearInterval(spawnInterval);
     }, []);
 
     useEffect(() => {
         const typeInterval = setInterval(() => {
-            setStreams(prev => prev.map(s => {
-                if (s.text.length < s.fullText.length) {
-                    return { ...s, text: s.fullText.slice(0, s.text.length + 1) };
-                }
-                return { ...s, isCompleted: true };
-            }));
-        }, 120); // Slower typing speed
+            setStreams(prev => {
+                let changed = false;
+                const next = prev.map(s => {
+                    if (s.text.length < s.fullText.length) {
+                        changed = true;
+                        return { ...s, text: s.fullText.slice(0, s.text.length + 1) };
+                    }
+                    if (!s.isCompleted) {
+                        changed = true;
+                        return { ...s, isCompleted: true };
+                    }
+                    return s;
+                });
+                return changed ? next : prev;
+            });
+        }, 150);
         return () => clearInterval(typeInterval);
     }, []);
 
@@ -89,11 +101,13 @@ export const TerminalCodeEffect = () => {
         <div className="absolute inset-0 z-0 bg-black overflow-hidden pointer-events-none select-none font-mono">
             <div className="w-full h-full absolute inset-0 bg-black" />
 
-            {/* CORNER GLITCHES */}
-            <CornerGlitch position="top-4 left-4" color="#ef4444" /> {/* Red */}
-            <CornerGlitch position="top-4 right-4" color="#3b82f6" /> {/* Blue */}
-            <CornerGlitch position="bottom-4 left-4" color="#eab308" /> {/* Yellow */}
-            <CornerGlitch position="bottom-4 right-4" color="#39FF14" /> {/* Green */}
+            {/* CORNER GLITCHES - Reduced on mobile */}
+            <CornerGlitch position="top-4 left-4" color="#ef4444" />
+            <CornerGlitch position="bottom-4 right-4" color="#39FF14" />
+            <div className="hidden md:block">
+                <CornerGlitch position="top-4 right-4" color="#3b82f6" />
+                <CornerGlitch position="bottom-4 left-4" color="#eab308" />
+            </div>
 
             <div className="relative z-10 w-full h-full">
                 {streams.map((stream) => (
@@ -126,8 +140,8 @@ const CornerGlitch = ({ position, color }: { position: string, color: string }) 
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setText(Math.random().toString(16).slice(2, 10).toUpperCase());
-        }, 100);
+            setText(Math.random().toString(16).slice(2, 6).toUpperCase());
+        }, 500);
         return () => clearInterval(interval);
     }, []);
 

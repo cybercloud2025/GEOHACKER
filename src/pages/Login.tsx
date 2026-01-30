@@ -228,7 +228,7 @@ export const LoginPage = () => {
                         className="absolute -inset-[3px] rounded-[28px] blur-[2px] opacity-100"
                     />
 
-                    <div className="relative bg-black/80 backdrop-blur-2xl rounded-3xl border-4 border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden">
+                    <div className="relative bg-black/80 backdrop-blur-xl md:backdrop-blur-2xl rounded-3xl border-4 border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden">
 
                         {/* Card Header Decoration */}
                         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-100" />
