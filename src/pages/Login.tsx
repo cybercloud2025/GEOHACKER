@@ -459,7 +459,7 @@ export const LoginPage = () => {
                         className="fixed inset-0 z-50 flex items-center justify-center bg-black/98"
                     >
                         <TerminalCodeEffect />
-                        <div className="relative z-10 w-full max-w-sm p-8 bg-black border border-emerald-500/30 shadow-[0_0_100px_rgba(16,185,129,0.2)] rounded-lg text-center space-y-8">
+                        <div className="relative z-10 w-full max-w-sm p-8 bg-black border-4 border-emerald-500 animate-[pulse_1s_infinite] shadow-[0_0_100px_rgba(16,185,129,0.3)] rounded-3xl text-center space-y-8 transition-all">
                             <div className="space-y-2">
                                 <h3 className="text-3xl font-black text-red-600 tracking-[0.3em] uppercase glitch-text" data-text="MASTER ACCESS">MASTER ACCESS</h3>
                                 <p className="text-[10px] text-emerald-400 font-black tracking-widest uppercase">ENTORNO RESTRINGIDO</p>
