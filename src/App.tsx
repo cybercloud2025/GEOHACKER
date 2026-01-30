@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
-import { LoginPage } from './pages/Login';
-import { TrackerPage } from './pages/Tracker';
-import { AdminPage } from './pages/Admin';
-import { AdminMapPage } from './pages/AdminMap';
-
 import { useAuthStore } from './stores/useAuthStore';
+import { PresenceManager } from './components/PresenceManager';
+
+// Lazy loading components for better performance
+const LoginPage = lazy(() => import('./pages/Login').then(m => ({ default: m.LoginPage })));
+const TrackerPage = lazy(() => import('./pages/Tracker').then(m => ({ default: m.TrackerPage })));
+const AdminPage = lazy(() => import('./pages/Admin').then(m => ({ default: m.AdminPage })));
+const AdminMapPage = lazy(() => import('./pages/AdminMap').then(m => ({ default: m.AdminMapPage })));
+
+// Loading spinner component
+const LoadingSpinner = () => (
+  <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+  </div>
+);
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -29,41 +38,39 @@ const HomeRoute = () => {
   return <TrackerPage />;
 };
 
-import { PresenceManager } from './components/PresenceManager';
-
 function App() {
   return (
     <BrowserRouter>
       <AppLayout>
         <PresenceManager />
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* Employee Routes (Redirects Admins to Dashboard) */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <HomeRoute />
-            </ProtectedRoute>
-          } />
+            {/* Employee Routes (Redirects Admins to Dashboard) */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <HomeRoute />
+              </ProtectedRoute>
+            } />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminPage />
-            </ProtectedRoute>
-          } />
+            {/* Admin Routes */}
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminPage />
+              </ProtectedRoute>
+            } />
 
-          <Route path="/admin/map/:id" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminMapPage />
-            </ProtectedRoute>
-          } />
+            <Route path="/admin/map/:id" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminMapPage />
+              </ProtectedRoute>
+            } />
 
-
-
-          {/* Catch all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Catch all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </AppLayout>
     </BrowserRouter>
   );

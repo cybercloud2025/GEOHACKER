@@ -6,9 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { MatrixRain } from '../components/Effects/MatrixRain';
+// Lazy load effects to improve initial interaction time
+const MatrixRain = React.lazy(() => import('../components/Effects/MatrixRain').then(m => ({ default: m.MatrixRain })));
+const TerminalCodeEffect = React.lazy(() => import('../components/Effects/TerminalCodeEffect').then(m => ({ default: m.TerminalCodeEffect })));
 import { playAlarm } from '../utils/audio';
-import { TerminalCodeEffect } from '../components/Effects/TerminalCodeEffect';
 
 export const LoginPage = () => {
     const [isRegistering, setIsRegistering] = useState(false);
@@ -29,6 +30,13 @@ export const LoginPage = () => {
     const [secretPin, setSecretPin] = useState('');
     const [alarmTriggered, setAlarmTriggered] = useState(false);
     const [clickState, setClickState] = useState({ count: 0, lastClick: 0 });
+    const [loadEffects, setLoadEffects] = useState(false);
+
+    useEffect(() => {
+        // Delay heavy effects slightly to prioritize form rendering
+        const timer = setTimeout(() => setLoadEffects(true), 1500);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         fetchSettings();
@@ -192,7 +200,9 @@ export const LoginPage = () => {
         <div className="flex flex-col items-center justify-start sm:justify-center min-h-screen px-4 pt-36 sm:pt-0 relative overflow-hidden bg-black font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
             {/* BACKGROUND LAYERS */}
             <div className="absolute inset-0 z-0 opacity-60">
-                <MatrixRain />
+                <React.Suspense fallback={null}>
+                    {loadEffects && <MatrixRain />}
+                </React.Suspense>
             </div>
 
             {/* Ambient Glows */}
@@ -474,7 +484,9 @@ export const LoginPage = () => {
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-50 flex items-center justify-center bg-black/98"
                     >
-                        <TerminalCodeEffect />
+                        <React.Suspense fallback={<div className="fixed inset-0 bg-black" />}>
+                            {loadEffects && <TerminalCodeEffect />}
+                        </React.Suspense>
                         <div className="relative z-10 w-full max-w-sm p-8 bg-black border-4 border-emerald-500 animate-[pulse_1s_infinite] shadow-[0_0_100px_rgba(16,185,129,0.3)] rounded-3xl text-center space-y-8 transition-all">
                             <div className="space-y-2">
                                 <h3 className="text-3xl font-black text-red-600 tracking-[0.3em] uppercase glitch-text" data-text="MASTER ACCESS">MASTER ACCESS</h3>
