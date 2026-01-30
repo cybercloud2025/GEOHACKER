@@ -185,17 +185,6 @@ export const LoginPage = () => {
         }
     }, [error]);
 
-    // Enhanced Glitch animations for text
-    const textGlitchVariants = {
-        normal: { x: 0, opacity: 1 },
-        glitch: {
-            x: [0, -2, 2, -2, 0],
-            skewX: [0, 10, -10, 0],
-            opacity: [1, 0.8, 1],
-            transition: { duration: 0.3 }
-        }
-    };
-
     return (
         <div className="flex flex-col items-center justify-start sm:justify-center min-h-screen px-4 pt-36 sm:pt-0 relative overflow-hidden bg-black font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
             {/* BACKGROUND LAYERS */}
@@ -214,29 +203,15 @@ export const LoginPage = () => {
 
             {/* MAIN CARD */}
             <motion.div
-                layout
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-                className="w-full max-w-[420px] relative z-10"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="relative w-full max-w-md group"
             >
                 {/* Glass Card Container */}
                 <div className="relative group">
                     {/* Border Glow Gradient - RANDOM BLINKING EFFECT */}
-                    <motion.div
-                        animate={{
-                            backgroundColor: ["rgba(34,211,238,0.5)", "rgba(168,85,247,0.5)", "rgba(239,68,68,0.5)", "rgba(234,179,8,0.5)", "rgba(34,197,94,0.5)"],
-                            boxShadow: [
-                                "0 0 20px rgba(34,211,238,0.3)",
-                                "0 0 20px rgba(168,85,247,0.3)",
-                                "0 0 20px rgba(239,68,68,0.3)",
-                                "0 0 20px rgba(234,179,8,0.3)",
-                                "0 0 20px rgba(34,197,94,0.3)"
-                            ]
-                        }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                        className="absolute -inset-[3px] rounded-[28px] blur-[2px] opacity-100"
-                    />
+                    <div className="absolute -inset-[3px] rounded-[28px] blur-[2px] opacity-100 animate-border-tech" />
 
                     <div className="relative bg-black/80 backdrop-blur-xl md:backdrop-blur-2xl rounded-3xl border-4 border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden">
 
@@ -283,29 +258,11 @@ export const LoginPage = () => {
                                 </motion.div>
 
                                 <div className="text-center space-y-2">
-                                    <motion.h2
-                                        variants={textGlitchVariants}
-                                        animate={triggerGlitch ? "glitch" : "normal"}
-                                        className="text-4xl font-black tracking-[0.2em] relative inline-block"
-                                    >
-                                        <motion.span
-                                            animate={{
-                                                color: ["#22d3ee", "#a855f7", "#ef4444", "#eab308", "#22c55e", "#22d3ee"],
-                                                textShadow: [
-                                                    "0 0 20px rgba(34,211,238,0.8)",
-                                                    "0 0 20px rgba(168,85,247,0.8)",
-                                                    "0 0 20px rgba(239,68,68,0.8)",
-                                                    "0 0 20px rgba(234,179,8,0.8)",
-                                                    "0 0 20px rgba(34,197,94,0.8)",
-                                                    "0 0 20px rgba(34,211,238,0.8)"
-                                                ]
-                                            }}
-                                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                                            className="bg-clip-text"
-                                        >
+                                    <h2 className={`text-4xl font-black tracking-[0.2em] relative inline-block ${triggerGlitch ? 'glitch-text' : ''}`}>
+                                        <span className="animate-text-tech bg-clip-text">
                                             {isRegistering ? 'NUEVO AGENTE' : 'GEO HACKER'}
-                                        </motion.span>
-                                    </motion.h2>
+                                        </span>
+                                    </h2>
                                     <p className="text-[14px] text-green-400 tracking-[0.4em] uppercase font-black drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]">
                                         {isRegistering ? 'INICIANDO PROTOCOLO' : 'ACCESO SEGURO AL SISTEMA'}
                                     </p>
