@@ -189,7 +189,7 @@ export const LoginPage = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-start sm:justify-center min-h-screen px-4 pt-8 sm:pt-0 relative overflow-hidden bg-black font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+        <div className="flex flex-col items-center justify-start sm:justify-center min-h-screen px-4 pt-20 sm:pt-0 relative overflow-hidden bg-black font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
             {/* BACKGROUND LAYERS */}
             <div className="absolute inset-0 z-0 opacity-60">
                 <MatrixRain />
