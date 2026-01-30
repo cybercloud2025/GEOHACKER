@@ -477,8 +477,8 @@ export const LoginPage = () => {
                     transition={{ delay: 1 }}
                     className="absolute bottom-8 text-center"
                 >
-                    <div className="flex items-center gap-2 text-[10px] text-cyan-900/60 font-mono tracking-widest">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                    <div className="flex items-center gap-3 text-[14px] text-cyan-400 font-mono tracking-[0.2em] font-black drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
+                        <span className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
                         SYSTEM ONLINE // V.3.0.1
                     </div>
                 </motion.div>
