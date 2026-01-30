@@ -189,7 +189,7 @@ export const LoginPage = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen px-4 relative overflow-hidden bg-black font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+        <div className="flex flex-col items-center justify-start sm:justify-center min-h-screen px-4 pt-8 sm:pt-0 relative overflow-hidden bg-black font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
             {/* BACKGROUND LAYERS */}
             <div className="absolute inset-0 z-0 opacity-60">
                 <MatrixRain />
@@ -456,7 +456,7 @@ export const LoginPage = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1 }}
-                    className="absolute bottom-24 text-center"
+                    className="mt-8 mb-8 sm:absolute sm:bottom-24 text-center"
                 >
                     <div className="flex items-center gap-3 text-[14px] text-cyan-400 font-mono tracking-[0.2em] font-black drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
                         <span className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
