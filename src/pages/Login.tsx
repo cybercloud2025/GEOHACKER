@@ -293,7 +293,7 @@ export const LoginPage = () => {
                                             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                                             className="bg-clip-text"
                                         >
-                                            {isRegistering ? 'NUEVO AGENTE' : 'GEOHACKER'}
+                                            {isRegistering ? 'NUEVO AGENTE' : 'GEO HACKER'}
                                         </motion.span>
                                     </motion.h2>
                                     <p className="text-[14px] text-green-400 tracking-[0.4em] uppercase font-black drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]">
