@@ -111,19 +111,22 @@ export const TrackerPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex flex-col gap-4 pointer-events-auto"
                 >
-                    {/* Main Identity Terminal */}
-                    <div className="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl flex items-center gap-4 relative overflow-hidden group min-w-[320px]">
-                        {/* Status Accent Glow */}
+                    {/* Main Identity Terminal - HUD Style */}
+                    <div className="bg-[#0a0a0a]/90 backdrop-blur-3xl border-2 border-cyan-500/40 rounded-3xl p-5 shadow-[0_0_40px_rgba(6,182,212,0.25)] flex items-center gap-5 relative overflow-hidden group min-w-[340px]">
+                        {/* Status Accent Glow (Dynamic Side) */}
                         <div
-                            className={`absolute top-0 left-0 w-1 h-full shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-colors duration-500
-                                ${isActive ? 'bg-cyan-500 shadow-[0_0_10px_#06b6d4]' : isBreak ? 'bg-yellow-500 shadow-[0_0_10px_#eab308]' : 'bg-gray-700'}
+                            className={`absolute top-0 right-0 w-1.5 h-full transition-all duration-700
+                                ${isActive ? 'bg-cyan-500 shadow-[-5px_0_20px_#06b6d4]' : isBreak ? 'bg-yellow-500 shadow-[-5px_0_20px_#eab308]' : 'bg-red-500 shadow-[-5px_0_20px_#ef4444]'}
                              `}
                         />
 
-                        {/* Avatar Hub */}
-                        <div className="relative shrink-0">
-                            <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center text-xl font-black text-white overflow-hidden transition-all duration-500 rotate-1 group-hover:rotate-0
-                                ${isActive ? 'bg-cyan-900/30 border-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.2)]' : isBreak ? 'bg-yellow-900/30 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-black border-white/10'}
+                        {/* Scanning Line Animation */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent h-12 w-full animate-scan pointer-events-none" />
+
+                        {/* Avatar Hub with Circular HUD Border */}
+                        <div className="relative shrink-0 p-1">
+                            <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center text-2xl font-black text-white overflow-hidden transition-all duration-500 shadow-[0_0_20px_rgba(0,0,0,0.5)]
+                                ${isActive ? 'bg-cyan-900/40 border-cyan-400' : isBreak ? 'bg-yellow-900/40 border-yellow-400' : 'bg-red-900/40 border-red-400'}
                             `}>
                                 {employee?.avatar_url ? (
                                     <img src={employee.avatar_url} className="w-full h-full object-cover" alt="User" />
@@ -131,55 +134,54 @@ export const TrackerPage = () => {
                                     employee?.first_name?.charAt(0)
                                 )}
                             </div>
-                            {isActive && <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-cyan-500 border-2 border-black rounded-full animate-pulse shadow-[0_0_8px_#06b6d4]" />}
+                            {isActive && <div className="absolute top-0 right-0 w-5 h-5 bg-cyan-500 border-4 border-[#0a0a0a] rounded-full animate-pulse shadow-[0_0_10px_#06b6d4]" />}
                         </div>
 
-                        {/* Text Metrics */}
-                        <div className="flex-1">
+                        {/* Text Metrics - High Visibility */}
+                        <div className="flex-1 space-y-1">
                             <div className="flex items-center gap-2">
-                                <span className="text-white font-black tracking-wider text-sm uppercase">[{employee?.first_name}]</span>
+                                <span className="text-white font-black tracking-[0.15em] text-lg uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{employee?.first_name} {employee?.last_name}</span>
                                 {employee?.verified ? (
-                                    <Shield className="w-3 h-3 text-cyan-500 opacity-60" />
+                                    <div className="px-2 py-0.5 bg-cyan-500/20 rounded-md border border-cyan-500/30">
+                                        <Shield className="w-3.5 h-3.5 text-cyan-400" />
+                                    </div>
                                 ) : (
-                                    <AlertTriangle className="w-3 h-3 text-yellow-500 animate-pulse" />
+                                    <div className="px-2 py-0.5 bg-red-500/20 rounded-md border border-red-500/30 animate-pulse">
+                                        <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                                    </div>
                                 )}
                             </div>
-                            <div className="h-4 flex items-center mt-1">
+                            <div className="flex items-center gap-3">
                                 <AnimatePresence mode="wait">
                                     {isActive ? (
                                         <motion.div
                                             key="status-active"
-                                            initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 5 }}
-                                            className="text-[10px] font-black text-cyan-400 tracking-[0.2em] flex items-center gap-2"
+                                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                            className="px-3 py-1 bg-cyan-500/10 rounded-full border border-cyan-500/20 text-[10px] font-black text-cyan-400 tracking-[0.2em] flex items-center gap-2"
                                         >
-                                            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping" />
-                                            DEPLOYED // {formattedStartTime}
+                                            <span className="w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
+                                            ACTIVE_UNIT // {formattedStartTime}
                                         </motion.div>
                                     ) : isBreak ? (
                                         <motion.div
                                             key="status-break"
-                                            initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 5 }}
-                                            className="text-[10px] font-black text-yellow-400 tracking-[0.2em]"
+                                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                            className="px-3 py-1 bg-yellow-500/10 rounded-full border border-yellow-500/20 text-[10px] font-black text-yellow-500 tracking-[0.2em]"
                                         >
-                                            STANDBY MODE
+                                            REST_PROTOCOL
                                         </motion.div>
                                     ) : (
                                         <motion.div
                                             key="status-idle"
-                                            initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 5 }}
-                                            className="text-[10px] font-black text-white/30 tracking-[0.2em]"
+                                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                            className="px-3 py-1 bg-red-500/10 rounded-full border border-red-500/20 text-[10px] font-black text-red-500 tracking-[0.2em]"
                                         >
-                                            SYSTEM OFFLINE
+                                            OFFLINE
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
+                                <div className="text-[10px] font-mono text-white/40 tracking-tighter">GMT-5</div>
                             </div>
-                        </div>
-
-                        {/* Secondary Metric */}
-                        <div className="pl-4 border-l border-white/5 flex flex-col items-center">
-                            <Clock className="w-4 h-4 text-white/20 mb-1" />
-                            <span className="text-[9px] font-mono text-white/40">GMT-5</span>
                         </div>
                     </div>
 
@@ -207,23 +209,25 @@ export const TrackerPage = () => {
                 <AnimatePresence>
                     {isIdle && (
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="flex flex-col items-center gap-2"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="flex flex-col items-center gap-1 bg-[#0a0a0a]/95 backdrop-blur-3xl px-16 py-8 rounded-[50px] border-4 border-cyan-500 shadow-[0_0_100px_rgba(6,182,212,0.4)] mb-8 relative group"
                         >
-                            <span className="text-[10px] font-black text-cyan-500/50 tracking-[0.5em] uppercase">Session Termination</span>
-                            <div className="text-5xl font-mono text-cyan-400 font-black tracking-tighter drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
-                                T-{timeLeft.toString().padStart(2, '0')}:00
+                            <div className="absolute inset-0 border border-cyan-400/20 rounded-[46px] m-1 pointer-events-none" />
+                            <span className="text-sm font-black text-cyan-400 tracking-[0.8em] uppercase drop-shadow-[0_0_15px_rgba(34,211,238,1)]">Emergency Logout</span>
+                            <div className="text-9xl font-mono text-white font-black tracking-tighter drop-shadow-[0_0_40px_rgba(255,255,255,0.4)] animate-pulse-fast">
+                                {timeLeft.toString().padStart(2, '0')}
                             </div>
+                            <span className="text-xs font-mono text-cyan-400/60 uppercase tracking-widest">Seconds Remaining</span>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
                 {/* CONTROL CONSOLE */}
                 <div className="w-full max-w-[450px] relative pointer-events-auto">
-                    {/* High-End Glass Console */}
-                    <div className="bg-black/40 backdrop-blur-3xl border border-white/10 rounded-[32px] p-2 shadow-2xl flex items-center justify-between relative group">
+                    {/* High-End Glass Console - HUD DESIGN */}
+                    <div className="bg-[#0a0a0a]/95 backdrop-blur-3xl border-2 border-cyan-500/50 rounded-[40px] p-2.5 shadow-[0_0_50px_rgba(0,0,0,0.9)] flex items-center justify-between relative group">
 
                         {/* Active Indicator Glow */}
                         <div className={`absolute -inset-2 rounded-[40px] blur-2xl opacity-10 transition-colors duration-700 -z-10
@@ -240,7 +244,7 @@ export const TrackerPage = () => {
                                     relative flex-1 group/btn h-20 rounded-2xl transition-all duration-300 overflow-hidden flex flex-col items-center justify-center gap-1
                                     ${(isIdle && employee?.verified)
                                         ? 'bg-gradient-to-br from-cyan-600 to-cyan-900 text-white shadow-[0_10px_30px_rgba(6,182,212,0.3)] hover:brightness-110 active:scale-[0.98]'
-                                        : 'bg-white/5 text-white/10 cursor-not-allowed'}
+                                        : 'bg-white/5 text-white/40 cursor-not-allowed'}
                                 `}
                             >
                                 <Play className={`w-6 h-6 fill-current transition-transform group-hover/btn:scale-110 ${!isIdle && 'opacity-20'}`} />
@@ -260,10 +264,10 @@ export const TrackerPage = () => {
                                 className={`
                                     relative flex-1 group/btn h-20 rounded-2xl transition-all duration-300 border flex flex-col items-center justify-center gap-1
                                     ${isActive
-                                        ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                                        ? 'bg-white/10 border-white/20 text-white hover:bg-white/20'
                                         : isBreak
-                                            ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500 animate-pulse'
-                                            : 'bg-transparent border-transparent text-white/5'}
+                                            ? 'bg-yellow-500/20 border-yellow-500/40 text-yellow-500 animate-pulse'
+                                            : 'bg-transparent border-transparent text-white/10'}
                                 `}
                             >
                                 {isBreak ? <Play className="w-6 h-6 fill-current" /> : <Coffee className="w-6 h-6" />}
@@ -277,8 +281,8 @@ export const TrackerPage = () => {
                                 className={`
                                     relative flex-1 group/btn h-20 rounded-2xl transition-all duration-300 flex flex-col items-center justify-center gap-1
                                     ${(isActive || isBreak)
-                                        ? 'bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 active:scale-[0.98]'
-                                        : 'bg-transparent text-white/5'}
+                                        ? 'bg-red-500/20 border border-red-500/40 text-red-500 hover:bg-red-500/30 active:scale-[0.98]'
+                                        : 'bg-transparent text-white/10'}
                                 `}
                             >
                                 <Square className="w-6 h-6 fill-current" />
@@ -300,22 +304,22 @@ export const TrackerPage = () => {
                     </div>
                 </div>
 
-                {/* BOTTOM TELEMETRY */}
-                <div className="w-full max-w-[450px] flex justify-between items-end pb-2 opacity-40">
+                {/* BOTTOM TELEMETRY - HUD DESIGN */}
+                <div className="w-full max-w-[450px] flex justify-between items-end pb-2 px-8 py-5 bg-[#0a0a0a]/95 backdrop-blur-3xl rounded-3xl border-2 border-cyan-400/40 shadow-[0_0_30px_rgba(6,182,212,0.2)] mt-[-10px]">
                     <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 text-[8px] font-black text-white tracking-[0.3em] uppercase">
-                            <MapPin className="w-2.5 h-2.5" />
+                        <div className="flex items-center gap-2 text-[10px] font-black text-cyan-400 tracking-[0.3em] uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.3)]">
+                            <MapPin className="w-3 h-3" />
                             Location Context
                         </div>
-                        <div className="text-[9px] font-mono text-cyan-500">
+                        <div className="text-[11px] font-mono text-white font-bold tracking-wider">
                             {lastKnownLocation ? `${lastKnownLocation.latitude.toFixed(6)}, ${lastKnownLocation.longitude.toFixed(6)}` : 'SCANNING...'}
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Monitor className="w-4 h-4 text-white/20" />
+                        <Monitor className="w-4 h-4 text-white/40" />
                         <div className="text-right">
-                            <div className="text-[8px] font-black text-white/50 tracking-[0.2em] uppercase">Accuracy</div>
-                            <div className="text-[9px] font-mono text-white/30">{lastKnownLocation ? `${lastKnownLocation.accuracy.toFixed(1)}m` : '--'}</div>
+                            <div className="text-[10px] font-black text-white/50 tracking-[0.2em] uppercase">Accuracy</div>
+                            <div className="text-[11px] font-mono text-cyan-400 font-bold">{lastKnownLocation ? `${lastKnownLocation.accuracy.toFixed(1)}m` : '--'}</div>
                         </div>
                     </div>
                 </div>
