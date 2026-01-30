@@ -189,7 +189,7 @@ export const LoginPage = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-start sm:justify-center min-h-screen px-4 pt-32 sm:pt-0 relative overflow-hidden bg-black font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+        <div className="flex flex-col items-center justify-start sm:justify-center min-h-screen px-4 pt-12 sm:pt-0 relative overflow-hidden bg-black font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
             {/* BACKGROUND LAYERS */}
             <div className="absolute inset-0 z-0 opacity-60">
                 <MatrixRain />
@@ -237,10 +237,10 @@ export const LoginPage = () => {
                             <div className="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,1.0)]" />
                         </div>
 
-                        <div className="p-8 pt-12 space-y-8">
+                        <div className="p-8 pt-10 space-y-6">
 
                             {/* LOGO AREA */}
-                            <div className="flex flex-col items-center justify-center space-y-6">
+                            <div className="flex flex-col items-center justify-center space-y-4">
                                 <motion.div
                                     whileHover={{ scale: 1.05 }}
                                     className="relative"
@@ -303,7 +303,7 @@ export const LoginPage = () => {
                             </div>
 
                             {/* FORM AREA */}
-                            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-6">
+                            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
                                 <AnimatePresence mode="popLayout">
                                     {isRegistering && (
                                         <motion.div
@@ -347,7 +347,7 @@ export const LoginPage = () => {
                                     )}
                                 </AnimatePresence>
 
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     <div className="relative group/pin">
                                         <motion.div
                                             animate={error ? { x: [-5, 5, -5, 5, 0] } : {}}
@@ -456,7 +456,7 @@ export const LoginPage = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1 }}
-                    className="mt-8 mb-8 sm:absolute sm:bottom-24 text-center"
+                    className="mt-6 mb-4 sm:absolute sm:bottom-24 text-center"
                 >
                     <div className="flex items-center gap-3 text-[14px] text-cyan-400 font-mono tracking-[0.2em] font-black drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
                         <span className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
