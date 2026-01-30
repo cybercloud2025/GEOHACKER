@@ -212,16 +212,29 @@ export const LoginPage = () => {
             >
                 {/* Glass Card Container */}
                 <div className="relative group">
-                    {/* Border Glow Gradient */}
-                    <div className="absolute -inset-[1px] bg-gradient-to-br from-cyan-400/50 via-transparent to-purple-400/50 rounded-3xl blur-sm group-hover:blur-md transition-all duration-500 opacity-90" />
+                    {/* Border Glow Gradient - RANDOM BLINKING EFFECT */}
+                    <motion.div
+                        animate={{
+                            backgroundColor: ["rgba(34,211,238,0.5)", "rgba(168,85,247,0.5)", "rgba(239,68,68,0.5)", "rgba(234,179,8,0.5)", "rgba(34,197,94,0.5)"],
+                            boxShadow: [
+                                "0 0 20px rgba(34,211,238,0.3)",
+                                "0 0 20px rgba(168,85,247,0.3)",
+                                "0 0 20px rgba(239,68,68,0.3)",
+                                "0 0 20px rgba(234,179,8,0.3)",
+                                "0 0 20px rgba(34,197,94,0.3)"
+                            ]
+                        }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                        className="absolute -inset-[3px] rounded-[28px] blur-[2px] opacity-100"
+                    />
 
-                    <div className="relative bg-black/60 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden">
+                    <div className="relative bg-black/80 backdrop-blur-2xl rounded-3xl border-4 border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden">
 
                         {/* Card Header Decoration */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-70" />
+                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-100" />
                         <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-start pointer-events-none">
-                            <div className="w-2 h-2 rounded-full bg-red-400 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                            <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                            <div className="w-3 h-3 rounded-full bg-red-400 shadow-[0_0_12px_rgba(239,68,68,1.0)]" />
+                            <div className="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,1.0)]" />
                         </div>
 
                         <div className="p-8 pt-12 space-y-8">
@@ -234,13 +247,13 @@ export const LoginPage = () => {
                                 >
                                     <div className="absolute inset-0 bg-cyan-400/30 blur-2xl rounded-full animate-pulse" />
                                     {isRegistering ? (
-                                        <label className="relative w-28 h-28 bg-black/60 border border-cyan-400/50 rounded-full flex items-center justify-center cursor-pointer hover:border-cyan-300 hover:shadow-[0_0_25px_rgba(34,211,238,0.5)] transition-all group/avatar overflow-hidden">
+                                        <label className="relative w-28 h-28 bg-black/60 border-2 border-cyan-400 rounded-full flex items-center justify-center cursor-pointer hover:border-cyan-300 hover:shadow-[0_0_25px_rgba(34,211,238,0.5)] transition-all group/avatar overflow-hidden">
                                             {formData.avatarPreview ? (
                                                 <img src={formData.avatarPreview} className="w-full h-full object-cover" alt="Avatar" />
                                             ) : (
                                                 <div className="flex flex-col items-center text-cyan-400 group-hover/avatar:text-cyan-300 transition-colors">
                                                     <UserPlus className="w-8 h-8 mb-2" />
-                                                    <span className="text-[10px] tracking-widest font-bold">UPLOAD</span>
+                                                    <span className="text-[10px] tracking-widest font-bold">CARGAR</span>
                                                 </div>
                                             )}
                                             <input type="file" name="avatar" accept="image/*" className="hidden" onChange={handleInputChange} />
@@ -248,28 +261,42 @@ export const LoginPage = () => {
                                     ) : (
                                         <div
                                             onClick={handleSecretTrigger}
-                                            className="relative w-28 h-28 bg-black/60 border border-white/20 rounded-full flex items-center justify-center cursor-default hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] transition-all overflow-hidden"
+                                            className="relative w-28 h-28 bg-black/60 border-2 border-white/30 rounded-full flex items-center justify-center cursor-default hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] transition-all overflow-hidden"
                                         >
                                             <img
                                                 src={hackerIcon}
                                                 alt="System"
-                                                className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity"
+                                                className="w-full h-full object-cover opacity-100"
                                             />
                                         </div>
                                     )}
                                 </motion.div>
 
-                                <div className="text-center space-y-1">
+                                <div className="text-center space-y-2">
                                     <motion.h2
                                         variants={textGlitchVariants}
                                         animate={triggerGlitch ? "glitch" : "normal"}
-                                        className="text-4xl font-black text-white tracking-[0.2em] relative inline-block"
+                                        className="text-5xl font-black tracking-[0.2em] relative inline-block"
                                     >
-                                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-white to-purple-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]">
+                                        <motion.span
+                                            animate={{
+                                                color: ["#22d3ee", "#a855f7", "#ef4444", "#eab308", "#22c55e", "#22d3ee"],
+                                                textShadow: [
+                                                    "0 0 20px rgba(34,211,238,0.8)",
+                                                    "0 0 20px rgba(168,85,247,0.8)",
+                                                    "0 0 20px rgba(239,68,68,0.8)",
+                                                    "0 0 20px rgba(234,179,8,0.8)",
+                                                    "0 0 20px rgba(34,197,94,0.8)",
+                                                    "0 0 20px rgba(34,211,238,0.8)"
+                                                ]
+                                            }}
+                                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                                            className="bg-clip-text"
+                                        >
                                             {isRegistering ? 'NUEVO AGENTE' : 'GEOHACKER'}
-                                        </span>
+                                        </motion.span>
                                     </motion.h2>
-                                    <p className="text-[10px] text-cyan-400 tracking-[0.4em] uppercase font-bold">
+                                    <p className="text-[14px] text-green-400 tracking-[0.4em] uppercase font-black drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]">
                                         {isRegistering ? 'INICIANDO PROTOCOLO' : 'ACCESO SEGURO AL SISTEMA'}
                                     </p>
                                 </div>
@@ -293,7 +320,7 @@ export const LoginPage = () => {
                                                         value={formData.firstName}
                                                         onChange={handleInputChange}
                                                         disabled={isLoading}
-                                                        className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-cyan-500/50 focus:bg-white/10 rounded-xl h-12 text-xs font-bold tracking-wider text-center"
+                                                        className="bg-white/5 border-2 border-white/20 text-white placeholder:text-white/30 focus:border-cyan-500 focus:bg-white/10 rounded-xl h-12 text-sm font-bold tracking-wider text-center"
                                                     />
                                                 </div>
                                                 <div className="group/input relative">
@@ -303,7 +330,7 @@ export const LoginPage = () => {
                                                         value={formData.lastName}
                                                         onChange={handleInputChange}
                                                         disabled={isLoading}
-                                                        className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-cyan-500/50 focus:bg-white/10 rounded-xl h-12 text-xs font-bold tracking-wider text-center"
+                                                        className="bg-white/5 border-2 border-white/20 text-white placeholder:text-white/30 focus:border-cyan-500 focus:bg-white/10 rounded-xl h-12 text-sm font-bold tracking-wider text-center"
                                                     />
                                                 </div>
                                             </div>
@@ -320,118 +347,123 @@ export const LoginPage = () => {
                                     )}
                                 </AnimatePresence>
 
-                                {/* PIN INPUT (The Star) */}
-                                <div className="space-y-2 relative">
+                                <div className="space-y-4">
                                     <div className="relative group/pin">
-                                        <div className={`absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-2xl blur opacity-0 group-hover/pin:opacity-100 transition-opacity duration-500 ${error ? 'from-red-500/20 to-orange-500/20 opacity-100' : ''}`} />
-                                        <Input
-                                            type="text"
-                                            name="access_code"
-                                            placeholder={
-                                                formData.pin.startsWith('@')
-                                                    ? "PIN DE ADMIN (5 DÍGITOS)"
-                                                    : (isRegistering ? "CREAR PIN (4)" : "INGRESAR PIN")
-                                            }
-                                            className={`relative z-10 text-center font-mono text-2xl tracking-[0.5em] h-16 rounded-2xl border-2 transition-all duration-300
-                                                ${error
-                                                    ? 'bg-red-500/10 border-red-500/50 text-red-200 placeholder:text-red-500/30'
-                                                    : 'bg-black/50 border-white/10 text-cyan-400 placeholder:text-white/10 focus:border-cyan-500/50 focus:shadow-[0_0_30px_rgba(34,211,238,0.1)]'
+                                        <motion.div
+                                            animate={error ? { x: [-5, 5, -5, 5, 0] } : {}}
+                                            className="relative"
+                                        >
+                                            <Input
+                                                type="text"
+                                                name="access_code"
+                                                placeholder={
+                                                    formData.pin.startsWith('@')
+                                                        ? "PIN DE ADMIN (5 DÍGITOS)"
+                                                        : (isRegistering ? "CREAR PIN (4)" : "INGRESAR PIN")
                                                 }
-                                            `}
-                                            maxLength={6}
-                                            value={formData.pin}
-                                            onChange={(e) => {
-                                                const rawValue = e.target.value;
-                                                let cleaned = '';
-                                                if (rawValue.startsWith('@')) {
-                                                    // Admin Rule: @ + 5 digits
-                                                    cleaned = '@' + rawValue.slice(1).replace(/\D/g, '').slice(0, 5);
-                                                } else {
-                                                    // User Rule: 4 digits
-                                                    cleaned = rawValue.replace(/\D/g, '').slice(0, 4);
-                                                }
-                                                setFormData(prev => ({ ...prev, pin: cleaned }));
-
-                                                // Auto-login logic
-                                                if (!isRegistering) {
-                                                    if (cleaned.startsWith('@') && cleaned.length === 6) {
-                                                        performLogin(cleaned);
-                                                    } else if (!cleaned.startsWith('@') && cleaned.length === 4) {
-                                                        performLogin(cleaned);
+                                                className={`relative z-10 text-center font-mono text-2xl tracking-[0.5em] h-16 rounded-2xl border-4 transition-all duration-300
+                                                    ${error
+                                                        ? 'bg-red-500/10 border-red-500 text-red-200 placeholder:text-red-500/50'
+                                                        : 'bg-black/60 border-red-600 text-red-500 placeholder:text-red-900/40 focus:border-red-500 focus:shadow-[0_0_30px_rgba(239,68,68,0.2)]'
                                                     }
-                                                }
-                                            }}
+                                                `}
+                                                maxLength={6}
+                                                value={formData.pin}
+                                                onChange={(e) => {
+                                                    const rawValue = e.target.value;
+                                                    let cleaned = '';
+                                                    if (rawValue.startsWith('@')) {
+                                                        // Admin Rule: @ + 5 digits
+                                                        cleaned = '@' + rawValue.slice(1).replace(/\D/g, '').slice(0, 5);
+                                                    } else {
+                                                        // User Rule: 4 digits
+                                                        cleaned = rawValue.replace(/\D/g, '').slice(0, 4);
+                                                    }
+                                                    setFormData(prev => ({ ...prev, pin: cleaned }));
+
+                                                    // Auto-login logic
+                                                    if (!isRegistering) {
+                                                        if (cleaned.startsWith('@') && cleaned.length === 6) {
+                                                            performLogin(cleaned);
+                                                        } else if (!cleaned.startsWith('@') && cleaned.length === 4) {
+                                                            performLogin(cleaned);
+                                                        }
+                                                    }
+                                                }}
+                                                disabled={isLoading}
+                                                autoFocus={!isRegistering}
+                                                autoComplete="off"
+                                            />
+                                            <div className="absolute -inset-1 bg-red-600/10 blur opacity-0 group-hover/pin:opacity-100 transition-opacity rounded-2xl" />
+                                        </motion.div>
+                                    </div>
+
+                                    {error && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="flex items-center justify-center gap-2 text-red-400 font-bold text-[10px] tracking-widest uppercase"
+                                        >
+                                            <div className="w-1 h-1 bg-red-500 rounded-full animate-ping" />
+                                            {error}
+                                        </motion.div>
+                                    )}
+
+                                    {/* Action Buttons */}
+                                    {!isRegistering && (
+                                        <Button
+                                            type="submit"
                                             disabled={isLoading}
-                                            autoFocus={!isRegistering}
-                                            autoComplete="off"
-                                        />
-
-                                        {/* Status Indicators */}
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
+                                            className="w-full h-14 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-black tracking-widest text-sm rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all duration-300 transform active:scale-[0.98]"
+                                        >
                                             {isLoading ? (
-                                                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    VERIFICANDO...
+                                                </div>
                                             ) : (
-                                                formData.pin.length >= 4 && (
-                                                    <Lock className="w-4 h-4 text-cyan-500/50" />
-                                                )
+                                                <span className="flex items-center justify-center gap-2">
+                                                    <Lock className="w-5 h-5" /> ACCEDER AL SISTEMA
+                                                </span>
                                             )}
-                                        </div>
-                                    </div>
+                                        </Button>
+                                    )}
 
-                                    {/* Error Message */}
-                                    <div className="h-6 flex items-center justify-center">
-                                        <AnimatePresence>
-                                            {error && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: -5 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -5 }}
-                                                    className="text-[10px] font-black tracking-widest text-red-500 uppercase flex items-center gap-2"
-                                                >
-                                                    <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                                                    {error}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
+                                    {isRegistering && (
+                                        <Button
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="w-full h-14 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-black font-black tracking-widest text-sm rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] transition-all duration-300 transform active:scale-[0.98]"
+                                        >
+                                            <span className="relative z-10 flex items-center justify-center gap-2">
+                                                {isRegistering ? <UserPlus className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+                                                {isRegistering ? 'INICIALIZAR IDENTIDAD' : 'ACCEDER AL SISTEMA'}
+                                            </span>
+                                        </Button>
+                                    )}
                                 </div>
-
-                                {isRegistering && (
-                                    <Button
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="w-full h-14 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-black font-black tracking-widest text-sm rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] transition-all duration-300 transform active:scale-[0.98]"
-                                    >
-                                        <span className="relative z-10 flex items-center justify-center gap-2">
-                                            {isRegistering ? <UserPlus className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
-                                            {isRegistering ? 'INICIALIZAR IDENTIDAD' : 'ACCEDER AL SISTEMA'}
-                                        </span>
-                                    </Button>
-                                )}
                             </form>
-                        </div>
 
-                        {/* Footer Toggle */}
-                        <div className="bg-black/40 border-t border-white/5 p-4 text-center">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (!isRegistering && !isRegistrationEnabled) return;
-                                    setIsRegistering(!isRegistering);
-                                    setError('');
-                                    setFormData({ firstName: '', lastName: '', email: '', pin: '', avatar: null, avatarPreview: '' });
-                                }}
-                                disabled={!isRegistering && !isRegistrationEnabled}
-                                className={`text-[10px] font-bold tracking-[0.2em] transition-all duration-300 uppercase
-                                    ${!isRegistering && !isRegistrationEnabled
-                                        ? 'text-white/20 cursor-not-allowed'
-                                        : 'text-white/40 hover:text-cyan-400 hover:drop-shadow-[0_0_5px_cyan]'
-                                    }`}
-                            >
-                                {isRegistering
-                                    ? '¿YA TIENES UNA IDENTIDAD? VOLVER'
-                                    : (isRegistrationEnabled ? 'ESTABLECER NUEVA IDENTIDAD' : 'REGISTROS BLOQUEADOS')}
-                            </button>
+                            {/* Secondary Actions */}
+                            <div className="text-center">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsRegistering(!isRegistering);
+                                        setError('');
+                                        setFormData(prev => ({ ...prev, pin: '' }));
+                                    }}
+                                    className={`text-[12px] font-black tracking-[0.2em] uppercase transition-all duration-300 
+                                        ${isRegistering
+                                            ? 'text-cyan-400/70 hover:text-cyan-400'
+                                            : (isRegistrationEnabled ? 'text-yellow-400 hover:text-yellow-300 hover:scale-105' : 'text-gray-500 cursor-not-allowed')
+                                        }`}
+                                >
+                                    {isRegistering
+                                        ? '¿YA TIENES UNA IDENTIDAD? VOLVER'
+                                        : (isRegistrationEnabled ? 'ESTABLECER NUEVA IDENTIDAD' : 'REGISTROS BLOQUEADOS')}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
