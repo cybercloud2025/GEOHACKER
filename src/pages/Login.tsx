@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Lock, ChevronRight } from 'lucide-react';
+import { UserPlus, Lock, ShieldCheck } from 'lucide-react';
 import hackerIcon from '../assets/hacker-icon.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -266,11 +266,11 @@ export const LoginPage = () => {
                                         className="text-4xl font-black text-white tracking-[0.2em] relative inline-block"
                                     >
                                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-white to-purple-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]">
-                                            {isRegistering ? 'NEW AGENT' : 'GEOHACKER'}
+                                            {isRegistering ? 'NUEVO AGENTE' : 'GEOHACKER'}
                                         </span>
                                     </motion.h2>
                                     <p className="text-[10px] text-cyan-400 tracking-[0.4em] uppercase font-bold">
-                                        {isRegistering ? 'INITIALIZING PROTOCOL' : 'SECURE SYSTEM ACCESS'}
+                                        {isRegistering ? 'INICIANDO PROTOCOLO' : 'ACCESO SEGURO AL SISTEMA'}
                                     </p>
                                 </div>
                             </div>
@@ -289,7 +289,7 @@ export const LoginPage = () => {
                                                 <div className="group/input relative">
                                                     <Input
                                                         name="firstName"
-                                                        placeholder="FIRST NAME"
+                                                        placeholder="NOMBRE"
                                                         value={formData.firstName}
                                                         onChange={handleInputChange}
                                                         disabled={isLoading}
@@ -299,7 +299,7 @@ export const LoginPage = () => {
                                                 <div className="group/input relative">
                                                     <Input
                                                         name="lastName"
-                                                        placeholder="LAST NAME"
+                                                        placeholder="APELLIDO"
                                                         value={formData.lastName}
                                                         onChange={handleInputChange}
                                                         disabled={isLoading}
@@ -329,8 +329,8 @@ export const LoginPage = () => {
                                             name="access_code"
                                             placeholder={
                                                 formData.pin.startsWith('@')
-                                                    ? "ADMIN CODE (5 DIGITS)"
-                                                    : (isRegistering ? "CREATE PIN (4)" : "ENTER PIN")
+                                                    ? "PIN DE ADMIN (5 DÍGITOS)"
+                                                    : (isRegistering ? "CREAR PIN (4)" : "INGRESAR PIN")
                                             }
                                             className={`relative z-10 text-center font-mono text-2xl tracking-[0.5em] h-16 rounded-2xl border-2 transition-all duration-300
                                                 ${error
@@ -402,7 +402,10 @@ export const LoginPage = () => {
                                         disabled={isLoading}
                                         className="w-full h-14 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-black font-black tracking-widest text-sm rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] transition-all duration-300 transform active:scale-[0.98]"
                                     >
-                                        INITIALIZE AGENT <ChevronRight className="ml-2 w-4 h-4" />
+                                        <span className="relative z-10 flex items-center justify-center gap-2">
+                                            {isRegistering ? <UserPlus className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+                                            {isRegistering ? 'INICIALIZAR IDENTIDAD' : 'ACCEDER AL SISTEMA'}
+                                        </span>
                                     </Button>
                                 )}
                             </form>
@@ -426,8 +429,8 @@ export const LoginPage = () => {
                                     }`}
                             >
                                 {isRegistering
-                                    ? 'ACCESS EXISTING ACCOUNT'
-                                    : (isRegistrationEnabled ? 'ESTABLISH NEW IDENTITY' : 'REGISTRATIONS LOCKED')}
+                                    ? '¿YA TIENES UNA IDENTIDAD? VOLVER'
+                                    : (isRegistrationEnabled ? 'ESTABLECER NUEVA IDENTIDAD' : 'REGISTROS BLOQUEADOS')}
                             </button>
                         </div>
                     </div>
