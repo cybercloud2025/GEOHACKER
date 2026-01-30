@@ -456,7 +456,7 @@ export const LoginPage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/98 border-[12px] border-emerald-500/50 animate-[pulse_1.5s_infinite]"
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/98"
                     >
                         <TerminalCodeEffect />
                         <div className="relative z-10 w-full max-w-sm p-8 bg-black border-4 border-emerald-500 animate-[pulse_1s_infinite] shadow-[0_0_100px_rgba(16,185,129,0.3)] rounded-3xl text-center space-y-8 transition-all">
