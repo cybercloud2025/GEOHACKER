@@ -191,16 +191,16 @@ export const LoginPage = () => {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen px-4 relative overflow-hidden bg-black font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
             {/* BACKGROUND LAYERS */}
-            <div className="absolute inset-0 z-0 opacity-40">
+            <div className="absolute inset-0 z-0 opacity-60">
                 <MatrixRain />
             </div>
 
             {/* Ambient Glows */}
-            <div className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-cyan-900/10 rounded-full blur-[120px] mix-blend-screen animate-pulse-slow" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[80vw] h-[80vw] bg-purple-900/10 rounded-full blur-[120px] mix-blend-screen animate-pulse-slow delay-1000" />
+            <div className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-cyan-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-slow" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-[80vw] h-[80vw] bg-purple-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-slow delay-1000" />
 
             {/* Grid overlay for tech feel */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,50,50,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,50,50,0.03)_1px,transparent_1px)] bg-[size:30px_30px] z-0 pointer-events-none" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,255,0.05)_1px,transparent_1px)] bg-[size:30px_30px] z-0 pointer-events-none" />
 
             {/* MAIN CARD */}
             <motion.div
@@ -213,15 +213,15 @@ export const LoginPage = () => {
                 {/* Glass Card Container */}
                 <div className="relative group">
                     {/* Border Glow Gradient */}
-                    <div className="absolute -inset-[1px] bg-gradient-to-br from-cyan-500/30 via-transparent to-purple-500/30 rounded-3xl blur-sm group-hover:blur-md transition-all duration-500 opacity-70" />
+                    <div className="absolute -inset-[1px] bg-gradient-to-br from-cyan-400/50 via-transparent to-purple-400/50 rounded-3xl blur-sm group-hover:blur-md transition-all duration-500 opacity-90" />
 
-                    <div className="relative bg-black/40 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden">
+                    <div className="relative bg-black/60 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden">
 
                         {/* Card Header Decoration */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-50" />
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-70" />
                         <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-start pointer-events-none">
-                            <div className="w-2 h-2 rounded-full bg-red-500/50" />
-                            <div className="w-2 h-2 rounded-full bg-cyan-500/50" />
+                            <div className="w-2 h-2 rounded-full bg-red-400 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                            <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
                         </div>
 
                         <div className="p-8 pt-12 space-y-8">
@@ -232,13 +232,13 @@ export const LoginPage = () => {
                                     whileHover={{ scale: 1.05 }}
                                     className="relative"
                                 >
-                                    <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full" />
+                                    <div className="absolute inset-0 bg-cyan-400/30 blur-2xl rounded-full animate-pulse" />
                                     {isRegistering ? (
-                                        <label className="relative w-28 h-28 bg-black/50 border border-cyan-500/30 rounded-full flex items-center justify-center cursor-pointer hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all group/avatar overflow-hidden">
+                                        <label className="relative w-28 h-28 bg-black/60 border border-cyan-400/50 rounded-full flex items-center justify-center cursor-pointer hover:border-cyan-300 hover:shadow-[0_0_25px_rgba(34,211,238,0.5)] transition-all group/avatar overflow-hidden">
                                             {formData.avatarPreview ? (
                                                 <img src={formData.avatarPreview} className="w-full h-full object-cover" alt="Avatar" />
                                             ) : (
-                                                <div className="flex flex-col items-center text-cyan-500/70 group-hover/avatar:text-cyan-400 transition-colors">
+                                                <div className="flex flex-col items-center text-cyan-400 group-hover/avatar:text-cyan-300 transition-colors">
                                                     <UserPlus className="w-8 h-8 mb-2" />
                                                     <span className="text-[10px] tracking-widest font-bold">UPLOAD</span>
                                                 </div>
@@ -248,12 +248,12 @@ export const LoginPage = () => {
                                     ) : (
                                         <div
                                             onClick={handleSecretTrigger}
-                                            className="relative w-28 h-28 bg-black/50 border border-white/10 rounded-full flex items-center justify-center cursor-default hover:border-cyan-500/40 hover:shadow-[0_0_25px_rgba(34,211,238,0.2)] transition-all overflow-hidden"
+                                            className="relative w-28 h-28 bg-black/60 border border-white/20 rounded-full flex items-center justify-center cursor-default hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] transition-all overflow-hidden"
                                         >
                                             <img
                                                 src={hackerIcon}
                                                 alt="System"
-                                                className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
+                                                className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity"
                                             />
                                         </div>
                                     )}
@@ -265,11 +265,11 @@ export const LoginPage = () => {
                                         animate={triggerGlitch ? "glitch" : "normal"}
                                         className="text-4xl font-black text-white tracking-[0.2em] relative inline-block"
                                     >
-                                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-white to-purple-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">
+                                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-white to-purple-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]">
                                             {isRegistering ? 'NEW AGENT' : 'GEOHACKER'}
                                         </span>
                                     </motion.h2>
-                                    <p className="text-[10px] text-cyan-500/60 tracking-[0.4em] uppercase font-bold">
+                                    <p className="text-[10px] text-cyan-400 tracking-[0.4em] uppercase font-bold">
                                         {isRegistering ? 'INITIALIZING PROTOCOL' : 'SECURE SYSTEM ACCESS'}
                                     </p>
                                 </div>
