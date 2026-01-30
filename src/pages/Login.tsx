@@ -276,7 +276,7 @@ export const LoginPage = () => {
                                     <motion.h2
                                         variants={textGlitchVariants}
                                         animate={triggerGlitch ? "glitch" : "normal"}
-                                        className="text-5xl font-black tracking-[0.2em] relative inline-block"
+                                        className="text-4xl font-black tracking-[0.2em] relative inline-block"
                                     >
                                         <motion.span
                                             animate={{
@@ -414,7 +414,7 @@ export const LoginPage = () => {
                                         <Button
                                             type="submit"
                                             disabled={isLoading}
-                                            className="w-full h-14 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-black tracking-widest text-sm rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all duration-300 transform active:scale-[0.98]"
+                                            className="w-full h-14 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-black font-black tracking-widest text-sm rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all duration-300 transform active:scale-[0.98]"
                                         >
                                             {isLoading ? (
                                                 <div className="flex items-center gap-3">
