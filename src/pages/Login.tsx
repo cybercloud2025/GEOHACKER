@@ -131,8 +131,11 @@ export const LoginPage = () => {
         setError('');
 
         if (isRegistering) {
-            if (!formData.firstName.trim() || !formData.lastName.trim() || formData.pin.length < 4) {
-                setError('CAMPOS INCOMPLETOS');
+            const is_admin_pin = formData.pin.startsWith('@');
+            const required_len = is_admin_pin ? 6 : 4;
+
+            if (!formData.firstName.trim() || !formData.lastName.trim() || formData.pin.length < required_len) {
+                setError(is_admin_pin ? 'PIN DE ADMIN INCOMPLETO (@ + 5)' : 'PIN DE USUARIO INCOMPLETO (4)');
                 return;
             }
 
@@ -324,7 +327,11 @@ export const LoginPage = () => {
                                         <Input
                                             type="text"
                                             name="access_code"
-                                            placeholder={isRegistering ? "CREATE PIN (4)" : "ENTER PIN"}
+                                            placeholder={
+                                                formData.pin.startsWith('@')
+                                                    ? "ADMIN CODE (5 DIGITS)"
+                                                    : (isRegistering ? "CREATE PIN (4)" : "ENTER PIN")
+                                            }
                                             className={`relative z-10 text-center font-mono text-2xl tracking-[0.5em] h-16 rounded-2xl border-2 transition-all duration-300
                                                 ${error
                                                     ? 'bg-red-500/10 border-red-500/50 text-red-200 placeholder:text-red-500/30'
@@ -337,14 +344,21 @@ export const LoginPage = () => {
                                                 const rawValue = e.target.value;
                                                 let cleaned = '';
                                                 if (rawValue.startsWith('@')) {
+                                                    // Admin Rule: @ + 5 digits
                                                     cleaned = '@' + rawValue.slice(1).replace(/\D/g, '').slice(0, 5);
                                                 } else {
+                                                    // User Rule: 4 digits
                                                     cleaned = rawValue.replace(/\D/g, '').slice(0, 4);
                                                 }
                                                 setFormData(prev => ({ ...prev, pin: cleaned }));
+
+                                                // Auto-login logic
                                                 if (!isRegistering) {
-                                                    if (cleaned.startsWith('@') && cleaned.length === 6) performLogin(cleaned);
-                                                    else if (!cleaned.startsWith('@') && cleaned.length === 4) performLogin(cleaned);
+                                                    if (cleaned.startsWith('@') && cleaned.length === 6) {
+                                                        performLogin(cleaned);
+                                                    } else if (!cleaned.startsWith('@') && cleaned.length === 4) {
+                                                        performLogin(cleaned);
+                                                    }
                                                 }
                                             }}
                                             disabled={isLoading}
