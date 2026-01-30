@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Lock, ShieldCheck } from 'lucide-react';
+import { UserPlus, ShieldCheck } from 'lucide-react';
 import hackerIcon from '../assets/hacker-icon.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -410,25 +410,6 @@ export const LoginPage = () => {
                                     )}
 
                                     {/* Action Buttons */}
-                                    {!isRegistering && (
-                                        <Button
-                                            type="submit"
-                                            disabled={isLoading}
-                                            className="w-full h-14 bg-white hover:bg-white/90 text-black font-black tracking-widest text-sm rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] transition-all duration-300 transform active:scale-[0.98]"
-                                        >
-                                            {isLoading ? (
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                    VERIFICANDO...
-                                                </div>
-                                            ) : (
-                                                <span className="flex items-center justify-center gap-2">
-                                                    <Lock className="w-5 h-5" /> ACCEDER AL SISTEMA
-                                                </span>
-                                            )}
-                                        </Button>
-                                    )}
-
                                     {isRegistering && (
                                         <Button
                                             type="submit"
