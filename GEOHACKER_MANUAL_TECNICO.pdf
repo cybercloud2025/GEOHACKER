@@ -1,0 +1,675 @@
+%PDF-1.3
+%ºß¬à
+3 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 829
+>>
+stream
+0.5670000000000001 w
+0 G
+0.06 0.09 0.16 rg
+0. 841.8899999999999864 595.2799999999999727 -841.8899999999999864 re
+f
+BT
+/F6 40 Tf
+46. TL
+1. g
+189.6399999999999864 558.42543307086612 Td
+(GEOHACKER) Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+1. g
+118.2999999999999829 515.9057480314959321 Td
+(PLATAFORMA DE GESTIÓN DE FUERZA DE TRABAJO) Tj
+ET
+0.13 0.77 0.37 RG
+5.6692913385826778 w
+155.9077165354330248 487.559291338582625 m
+439.3722834645669195 487.559291338582625 l
+S
+BT
+/F1 10 Tf
+11.5 TL
+1. g
+170.589999999999975 133.2285826771652637 Td
+(DOCUMENTACIÓN TÉCNICA & MANUAL DE USUARIO) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+1. g
+245.4899999999999807 116.220708661417234 Td
+(Generado el: 30/1/2026) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+184.5199999999999534 28.3464566929134207 Td
+(GEOHACKER PLATFORM - REPORTE INTEGRO - Pág 1 de 3) Tj
+ET
+endstream
+endobj
+5 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 3514
+>>
+stream
+5.6692913385826778 w
+0.13 0.77 0.37 RG
+BT
+/F2 22 Tf
+25.2999999999999972 TL
+0.863 0.149 0.149 rg
+56.6929133858267775 785.1970866141732586 Td
+(PARTE 1: ESPECIFICACIONES TÉCNICAS) Tj
+ET
+0.86 0.15 0.15 RG
+2.8346456692913389 w
+56.6929133858267775 756.8506299212598378 m
+538.5870866141731312 756.8506299212598378 l
+S
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0. g
+56.6929133858267775 728.5041732283464171 Td
+(1. Arquitectura del Sistema) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+56.6929133858267775 705.8270078740157487 Td
+(GEOHACKER opera bajo una arquitectura Serverless moderna, desacoplando completamente el Frontend) Tj
+T* (del Backend.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 671.8112598425196893 Td
+(• Frontend: React 19 + TypeScript \(Vite\)) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 651.9687401574802834 Td
+(• Backend: Supabase \(PostgreSQL, Auth, Edge Functions\)) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 632.1262204724408775 Td
+(• Estado: Zustand con persistencia local) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0. g
+56.6929133858267775 612.2837007874015853 Td
+(2. Pila Tecnológica) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0.196 g
+56.6929133858267775 589.6065354330708033 Td
+(Frontend Core) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 572.5986614173227736 Td
+(• Framework: React 19.2.0) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 552.7561417322833677 Td
+(• Lenguaje: TypeScript 5.9.3 \(Strict\)) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 532.9136220472440755 Td
+(• Bundler: Vite 7.2.4) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0.196 g
+56.6929133858267775 513.0711023622046696 Td
+(UI & UX) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 496.0632283464566399 Td
+(• Estilos: Tailwind CSS 3.4) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 476.2207086614172908 Td
+(• Animaciones: Framer Motion) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 456.378188976377885 Td
+(• Mapas: Leaflet & Google Maps API) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0.196 g
+56.6929133858267775 436.5356692913385359 Td
+(Base de Datos & Seguridad) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 419.5277952755905062 Td
+(• DB: PostgreSQL 15+ \(Relacional\)) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 399.6852755905511003 Td
+(• Seguridad: Row Level Security \(RLS\) Policies) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 379.8427559055117513 Td
+(• Auth: Autenticación personalizada vía PIN Hash \(Bcrypt\)) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 360.0002362204724022 Td
+(• Realtime: Supabase Channels \(Websockets\)) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0. g
+56.6929133858267775 340.1577165354329964 Td
+(3. Lógica de Negocio Crítica) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+56.6929133858267775 317.480551181102328 Td
+(El sistema implementa una lógica compleja para garantizar la veracidad de los datos:) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 297.6380314960629221 Td
+(• Geolocalización Obligatoria: No permite fichar sin coordenadas GPS.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 277.7955118110235162 Td
+(• Validación por Master Admin: Jerarquía de permisos estricta.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 257.952992125984224 Td
+(• Modo Offline/Online: Detección de presencia mediante heartbeat.) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+184.5199999999999534 28.3464566929134207 Td
+(GEOHACKER PLATFORM - REPORTE INTEGRO - Pág 2 de 3) Tj
+ET
+endstream
+endobj
+7 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 3407
+>>
+stream
+2.8346456692913389 w
+0.86 0.15 0.15 RG
+BT
+/F2 22 Tf
+25.2999999999999972 TL
+0.863 0.149 0.149 rg
+56.6929133858267775 785.1970866141732586 Td
+(PARTE 2: MANUAL DE USUARIO) Tj
+ET
+0.86 0.15 0.15 RG
+2.8346456692913389 w
+56.6929133858267775 756.8506299212598378 m
+538.5870866141731312 756.8506299212598378 l
+S
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0. g
+56.6929133858267775 728.5041732283464171 Td
+(1. Acceso y Registro) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+56.6929133858267775 705.8270078740157487 Td
+(El sistema utiliza un PIN numérico de 4 a 6 dígitos para un acceso rápido y seguro.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0.196 g
+56.6929133858267775 685.9844881889763428 Td
+(Pasos para ingresar:) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 668.9766141732283131 Td
+(• Abra la aplicación y teclee su PIN.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 649.1340944881889072 Td
+(• Si es nuevo, pulse 'Registrarse' y siga los pasos.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 629.291574803149615 Td
+(• Su cuenta quedará en estado 'Pendiente' hasta que un Admin la valide.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0. g
+56.6929133858267775 609.4490551181102092 Td
+(2. Modo Empleado \(Tracker\)) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+56.6929133858267775 586.7718897637794271 Td
+(La pantalla principal para el trabajador móvil.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0.196 g
+56.6929133858267775 566.9293700787401349 Td
+(Operativa diaria:) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 549.9214960629921052 Td
+(• ENTRAR \(Verde\): Inicia el contador de horas y activa el rastreo GPS.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 530.0789763779526993 Td
+(• PAUSA \(Amarillo\): Detiene el contador temporalmente para descansos.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 510.2364566929133503 Td
+(• SALIR \(Rojo\): Cierra el turno y envía el reporte final.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0. g
+56.6929133858267775 490.3939370078739444 Td
+(3. Modo Administrador) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+56.6929133858267775 467.716771653543276 Td
+(Accesible solo para usuarios con rol 'admin'.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0.196 g
+56.6929133858267775 447.8742519685038701 Td
+(Panel de Control \(Dashboard\):) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 430.8663779527558404 Td
+(• Historial: Tabla completa de turnos con filtros.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 411.0238582677164914 Td
+(• Mapa en Vivo: Visualización en tiempo real de toda la flota.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 391.1813385826770855 Td
+(• Gestión de Usuarios: Altas, bajas y modificaciones de perfil.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0.196 g
+56.6929133858267775 371.3388188976377364 Td
+(Funciones Avanzadas:) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 354.3309448818897067 Td
+(• Exportar PDF: Genera reportes oficiales firmados digitalmente.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 334.4884251968503008 Td
+(• Validación: Apruebe solicitudes de nuevos empleados con un clic.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.235 g
+70.8661417322834666 314.6459055118109518 Td
+(• Reset de PIN: Restablezca credenciales olvidadas de empleados.) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+184.5199999999999534 28.3464566929134207 Td
+(GEOHACKER PLATFORM - REPORTE INTEGRO - Pág 3 de 3) Tj
+ET
+endstream
+endobj
+1 0 obj
+<</Type /Pages
+/Kids [3 0 R 5 0 R 7 0 R ]
+/Count 3
+>>
+endobj
+9 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+10 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+11 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+12 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+13 0 obj
+<<
+/Type /Font
+/BaseFont /Courier
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+14 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+15 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+16 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+17 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Roman
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+18 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+19 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Italic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+20 0 obj
+<<
+/Type /Font
+/BaseFont /Times-BoldItalic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+21 0 obj
+<<
+/Type /Font
+/BaseFont /ZapfDingbats
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+22 0 obj
+<<
+/Type /Font
+/BaseFont /Symbol
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+2 0 obj
+<<
+/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+/Font <<
+/F1 9 0 R
+/F2 10 0 R
+/F3 11 0 R
+/F4 12 0 R
+/F5 13 0 R
+/F6 14 0 R
+/F7 15 0 R
+/F8 16 0 R
+/F9 17 0 R
+/F10 18 0 R
+/F11 19 0 R
+/F12 20 0 R
+/F13 21 0 R
+/F14 22 0 R
+>>
+/XObject <<
+>>
+>>
+endobj
+23 0 obj
+<<
+/Producer (jsPDF 4.0.0)
+/CreationDate (D:20260130010345+01'00')
+>>
+endobj
+24 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+/OpenAction [3 0 R /FitH null]
+/PageLayout /OneColumn
+>>
+endobj
+xref
+0 25
+0000000000 65535 f 
+0000008331 00000 n 
+0000010164 00000 n 
+0000000015 00000 n 
+0000000152 00000 n 
+0000001032 00000 n 
+0000001169 00000 n 
+0000004735 00000 n 
+0000004872 00000 n 
+0000008400 00000 n 
+0000008525 00000 n 
+0000008656 00000 n 
+0000008790 00000 n 
+0000008928 00000 n 
+0000009052 00000 n 
+0000009181 00000 n 
+0000009313 00000 n 
+0000009449 00000 n 
+0000009577 00000 n 
+0000009704 00000 n 
+0000009833 00000 n 
+0000009966 00000 n 
+0000010068 00000 n 
+0000010416 00000 n 
+0000010502 00000 n 
+trailer
+<<
+/Size 25
+/Root 24 0 R
+/Info 23 0 R
+/ID [ <E46A0A88BE84BA0B8D984BDB930B3688> <E46A0A88BE84BA0B8D984BDB930B3688> ]
+>>
+startxref
+10606
+%%EOF

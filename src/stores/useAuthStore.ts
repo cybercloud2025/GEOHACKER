@@ -146,6 +146,10 @@ export const useAuthStore = create<AuthState>()(
                         );
                     }
 
+
+
+
+
                     // If we are logged in (admin creating user), we don't want to replace the current session with the new user's session
                     // But if we are not logged in (public register), we usually auto-login.
                     // The store updates 'employee' state here.
@@ -199,6 +203,8 @@ export const useAuthStore = create<AuthState>()(
                         );
                     }
 
+
+
                     set({ isLoading: false });
                     return { success: true };
                 } catch (error: any) {
@@ -248,6 +254,10 @@ export const useAuthStore = create<AuthState>()(
                             (data as Employee).invite_code || inviteCode
                         );
                     }
+
+
+
+
 
                     set({ isLoading: false });
                     return { success: true };
