@@ -461,8 +461,8 @@ export const LoginPage = () => {
                         <TerminalCodeEffect />
                         <div className="relative z-10 w-full max-w-sm p-8 bg-black border border-emerald-500/30 shadow-[0_0_100px_rgba(16,185,129,0.2)] rounded-lg text-center space-y-8">
                             <div className="space-y-2">
-                                <h3 className="text-3xl font-black text-emerald-400 tracking-[0.3em] uppercase glitch-text" data-text="MASTER ACCESS">MASTER ACCESS</h3>
-                                <p className="text-[10px] text-emerald-800 tracking-widest uppercase">Environment Restrictivo</p>
+                                <h3 className="text-3xl font-black text-red-600 tracking-[0.3em] uppercase glitch-text" data-text="MASTER ACCESS">MASTER ACCESS</h3>
+                                <p className="text-[10px] text-emerald-400 font-black tracking-widest uppercase">ENTORNO RESTRINGIDO</p>
                             </div>
 
                             <Input
@@ -471,15 +471,15 @@ export const LoginPage = () => {
                                 value={secretPin}
                                 onChange={handleSecretPinChange}
                                 maxLength={8}
-                                placeholder="ACCESS CODE"
+                                placeholder="CÓDIGO DE ACCESO"
                                 className="bg-transparent border-b-2 border-emerald-900 text-center text-emerald-400 text-3xl font-mono tracking-[0.5em] focus:border-emerald-400 focus:outline-none placeholder:text-emerald-900/30 h-16 rounded-none w-full"
                             />
 
                             <button
                                 onClick={() => setShowSecretMode(false)}
-                                className="text-xs text-emerald-900/50 hover:text-emerald-400 font-mono tracking-widest uppercase transition-colors"
+                                className="text-xs text-yellow-500 hover:text-yellow-400 font-mono tracking-widest uppercase transition-colors"
                             >
-                                [ TERMINATE SESSION ]
+                                [ TERMINAR SESIÓN ]
                             </button>
                         </div>
                     </motion.div>
