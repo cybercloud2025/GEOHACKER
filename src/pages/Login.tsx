@@ -363,8 +363,8 @@ export const LoginPage = () => {
                                                 }
                                                 className={`relative z-10 text-center font-mono text-2xl tracking-[0.5em] h-16 rounded-2xl border-4 transition-all duration-300
                                                     ${error
-                                                        ? 'bg-red-500/10 border-red-500 text-red-200 placeholder:text-red-500/50'
-                                                        : 'bg-black/60 border-red-600 text-red-500 placeholder:text-red-900/40 focus:border-red-500 focus:shadow-[0_0_30px_rgba(239,68,68,0.2)]'
+                                                        ? 'bg-red-500/10 border-red-500 text-red-200 placeholder:text-red-500/50 placeholder:text-sm'
+                                                        : 'bg-black/60 border-red-600 text-red-500 placeholder:text-red-900/40 focus:border-red-500 focus:shadow-[0_0_30px_rgba(239,68,68,0.2)] placeholder:text-sm'
                                                     }
                                                 `}
                                                 maxLength={6}
