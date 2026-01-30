@@ -157,46 +157,43 @@ export const TrackerPage = () => {
                                         <motion.div
                                             key="status-active"
                                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                            className="px-3 py-1 bg-cyan-500/10 rounded-full border border-cyan-500/20 text-[10px] font-black text-cyan-400 tracking-[0.2em] flex items-center gap-2"
+                                            className="px-2 py-0.5 bg-cyan-500/10 rounded-full border border-cyan-500/20 text-[9px] font-black text-cyan-400 tracking-widest flex items-center gap-2"
                                         >
-                                            <span className="w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
-                                            ACTIVE_UNIT // {formattedStartTime}
+                                            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping" />
+                                            UNIDAD ACTIVA // {formattedStartTime}
                                         </motion.div>
                                     ) : isBreak ? (
                                         <motion.div
                                             key="status-break"
                                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                            className="px-3 py-1 bg-yellow-500/10 rounded-full border border-yellow-500/20 text-[10px] font-black text-yellow-500 tracking-[0.2em]"
+                                            className="px-2 py-0.5 bg-yellow-500/10 rounded-full border border-yellow-500/20 text-[9px] font-black text-yellow-500 tracking-widest"
                                         >
-                                            REST_PROTOCOL
+                                            PROTOCOLO RECESO
                                         </motion.div>
                                     ) : (
                                         <motion.div
                                             key="status-idle"
                                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                            className="px-3 py-1 bg-red-500/10 rounded-full border border-red-500/20 text-[10px] font-black text-red-500 tracking-[0.2em]"
+                                            className="px-2 py-0.5 bg-red-500/10 rounded-full border border-red-500/20 text-[9px] font-black text-red-500 tracking-widest"
                                         >
-                                            OFFLINE
+                                            DESCONECTADO
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                                <div className="text-[10px] font-mono text-white/40 tracking-tighter">GMT-5</div>
+                                <div className="text-[9px] font-mono text-white/30">GMT-5</div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Unverified Warning Tooltip */}
+                    {/* Alerta de Verificación - Más compacta */}
                     {!employee?.verified && (
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="bg-red-500/10 backdrop-blur-md border border-red-500/20 rounded-xl p-3 flex items-start gap-3 max-w-[320px]"
+                            className="bg-red-500/20 backdrop-blur-md border border-red-500/40 rounded-xl p-2 flex items-start gap-2 max-w-[280px]"
                         >
-                            <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5 animate-pulse" />
-                            <div className="space-y-1">
-                                <p className="text-[10px] font-black text-red-500 tracking-widest uppercase">Unauthorized Access</p>
-                                <p className="text-[9px] text-white/60 leading-tight">Tu perfil está pendiente de validación. Las funciones de registro están bloqueadas.</p>
-                            </div>
+                            <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0 animate-pulse" />
+                            <p className="text-[9px] text-white/80 leading-tight font-medium">Acceso no verificado. Funciones bloqueadas.</p>
                         </motion.div>
                     )}
                 </motion.div>
@@ -209,17 +206,16 @@ export const TrackerPage = () => {
                 <AnimatePresence>
                     {isIdle && (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
+                            initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            className="flex flex-col items-center gap-1 bg-[#0a0a0a]/95 backdrop-blur-3xl px-16 py-8 rounded-[50px] border-4 border-cyan-500 shadow-[0_0_100px_rgba(6,182,212,0.4)] mb-8 relative group"
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="flex flex-col items-center gap-0.5 bg-[#0a0a0a]/95 backdrop-blur-3xl px-10 py-5 rounded-[32px] border-2 border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.3)] mb-4 relative"
                         >
-                            <div className="absolute inset-0 border border-cyan-400/20 rounded-[46px] m-1 pointer-events-none" />
-                            <span className="text-sm font-black text-cyan-400 tracking-[0.8em] uppercase drop-shadow-[0_0_15px_rgba(34,211,238,1)]">Emergency Logout</span>
-                            <div className="text-9xl font-mono text-white font-black tracking-tighter drop-shadow-[0_0_40px_rgba(255,255,255,0.4)] animate-pulse-fast">
-                                {timeLeft.toString().padStart(2, '0')}
+                            <span className="text-[11px] font-black text-cyan-400 tracking-[0.5em] uppercase">CIERRE DE SESIÓN</span>
+                            <div className="text-6xl font-mono text-white font-black tracking-tighter drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+                                {timeLeft}
                             </div>
-                            <span className="text-xs font-mono text-cyan-400/60 uppercase tracking-widest">Seconds Remaining</span>
+                            <span className="text-[9px] font-mono text-cyan-500/60 uppercase tracking-widest">Segundos Restantes</span>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -290,36 +286,36 @@ export const TrackerPage = () => {
                             </button>
                         </div>
 
-                        {/* SEPARATOR & NAV */}
-                        <div className="w-[1px] h-12 bg-white/10 mx-2 md:mx-4" />
+                        {/* SEPARADOR & NAV */}
+                        <div className="w-[1px] h-10 bg-white/10 mx-2" />
 
                         <div className="flex items-center gap-1">
-                            <button onClick={handleLocate} className="w-12 h-20 flex items-center justify-center text-white/20 hover:text-cyan-500 transition-colors">
-                                <Crosshair className="w-5 h-5" />
+                            <button onClick={handleLocate} className="w-10 h-16 flex items-center justify-center text-white/20 hover:text-cyan-500 transition-colors">
+                                <Crosshair className="w-4 h-4" />
                             </button>
-                            <button onClick={logout} className="w-12 h-20 flex items-center justify-center text-white/20 hover:text-red-500 transition-colors">
-                                <LogOut className="w-5 h-5" />
+                            <button onClick={logout} className="w-10 h-16 flex items-center justify-center text-white/20 hover:text-red-500 transition-colors">
+                                <LogOut className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
                 </div>
 
                 {/* BOTTOM TELEMETRY - HUD DESIGN */}
-                <div className="w-full max-w-[450px] flex justify-between items-end pb-2 px-8 py-5 bg-[#0a0a0a]/95 backdrop-blur-3xl rounded-3xl border-2 border-cyan-400/40 shadow-[0_0_30px_rgba(6,182,212,0.2)] mt-[-10px]">
-                    <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 text-[10px] font-black text-cyan-400 tracking-[0.3em] uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.3)]">
-                            <MapPin className="w-3 h-3" />
-                            Location Context
+                <div className="w-full max-w-[400px] flex justify-between items-end pb-1 px-6 py-3 bg-[#0a0a0a]/95 backdrop-blur-3xl rounded-2xl border-2 border-cyan-500/20 shadow-[0_0_20px_rgba(0,0,0,0.5)] mt-[-15px]">
+                    <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-2 text-[9px] font-black text-cyan-400 tracking-[0.2em] uppercase">
+                            <MapPin className="w-2.5 h-2.5" />
+                            UBICACIÓN
                         </div>
-                        <div className="text-[11px] font-mono text-white font-bold tracking-wider">
-                            {lastKnownLocation ? `${lastKnownLocation.latitude.toFixed(6)}, ${lastKnownLocation.longitude.toFixed(6)}` : 'SCANNING...'}
+                        <div className="text-[10px] font-mono text-white/80 tracking-tight">
+                            {lastKnownLocation ? `${lastKnownLocation.latitude.toFixed(6)}, ${lastKnownLocation.longitude.toFixed(6)}` : 'ESCANEANDO...'}
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Monitor className="w-4 h-4 text-white/40" />
+                    <div className="flex items-center gap-2">
+                        <Monitor className="w-3 h-3 text-white/20" />
                         <div className="text-right">
-                            <div className="text-[10px] font-black text-white/50 tracking-[0.2em] uppercase">Accuracy</div>
-                            <div className="text-[11px] font-mono text-cyan-400 font-bold">{lastKnownLocation ? `${lastKnownLocation.accuracy.toFixed(1)}m` : '--'}</div>
+                            <div className="text-[9px] font-black text-white/40 tracking-[0.1em] uppercase">PRECISIÓN</div>
+                            <div className="text-[10px] font-mono text-cyan-400">{lastKnownLocation ? `${lastKnownLocation.accuracy.toFixed(1)}m` : '--'}</div>
                         </div>
                     </div>
                 </div>
