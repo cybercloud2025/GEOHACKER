@@ -1,11 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuthStore } from '../stores/useAuthStore';
 import { Button } from '../components/ui/Button';
 import { supabase } from '../lib/supabase';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { motion } from 'framer-motion';
-import { Users, ArrowUpDown, Trash2, UserX, MapPin, Shield, FileText, FileDown, Power, UserPlus, Edit, LogIn, ThumbsUp, RefreshCcw } from 'lucide-react';
+import { Users, Trash2, UserX, MapPin, Shield, FileText, FileDown, Power, UserPlus, Edit, LogIn, ThumbsUp, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LiveUserMap } from '../components/Admin/LiveUserMap';
 import jsPDF from 'jspdf';
@@ -16,6 +14,8 @@ import hackerIcon from '../assets/hacker-icon.png';
 import { ManualModal } from '../components/ManualModal';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { AssignAdminModal } from '../components/Admin/AssignAdminModal';
+import { AdminTable } from '../components/Admin/AdminTable';
+import { CreateAdminModal, CreateUserModal, EditUserModal } from '../components/Admin/UserModals';
 
 interface LocationData {
     lat: number;
@@ -36,6 +36,21 @@ interface HistoryEntry {
     total_break_duration?: string | null;
 }
 
+interface AdminUser {
+    id: string;
+    first_name: string;
+    last_name: string;
+    employee_email?: string | null;
+    avatar_url?: string | null;
+    invite_code?: string;
+    verified: boolean;
+    pin_text?: string | null;
+    role: string;
+    admin_id?: string;
+}
+
+
+
 export const AdminPage = () => {
     const { logout, employee, isRegistrationEnabled, fetchSettings, toggleRegistration } = useAuthStore();
     const onlineUserIds = usePresenceStore((state) => state.onlineUserIds);
@@ -43,9 +58,9 @@ export const AdminPage = () => {
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [view, setView] = useState<'history' | 'users' | 'map' | 'admins'>('history');
-    const isMasterAdmin = ((employee as any)?.invite_code || '').toUpperCase() === 'CORP-18EC';
-    const [admins, setAdmins] = useState<any[]>([]);
-    const [users, setUsers] = useState<any[]>([]);
+    const isMasterAdmin = (employee?.invite_code || '').toUpperCase() === 'CORP-18EC';
+    const [admins, setAdmins] = useState<AdminUser[]>([]);
+    const [users, setUsers] = useState<AdminUser[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -54,40 +69,16 @@ export const AdminPage = () => {
     const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
     const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
     const [isManualModalOpen, setIsManualModalOpen] = useState(false);
-    const [userToEdit, setUserToEdit] = useState<any>(null);
+    const [userToEdit, setUserToEdit] = useState<AdminUser | null>(null);
     const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
     const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
-    const pdfDocRef = useRef<any>(null);
+    const pdfDocRef = useRef<jsPDF | null>(null);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-    const [userToAssign, setUserToAssign] = useState<any>(null);
+    const [userToAssign, setUserToAssign] = useState<AdminUser | null>(null);
     const [activeUserIds, setActiveUserIds] = useState<Set<string>>(new Set());
 
-    useEffect(() => {
-        fetchSettings();
-    }, []);
 
-    useEffect(() => {
-        setCurrentPage(1);
-        if (view === 'history') {
-            fetchHistory();
-            fetchUsers(false);
-            fetchActiveUsers();
-            const interval = setInterval(() => {
-                fetchHistory();
-                fetchActiveUsers();
-            }, 5000);
-            return () => clearInterval(interval);
-        } else if (view === 'users') {
-            fetchUsers(true);
-            fetchActiveUsers();
-            const interval = setInterval(fetchActiveUsers, 5000);
-            return () => clearInterval(interval);
-        } else if (view === 'admins') {
-            fetchAdmins();
-        }
-    }, [view]);
-
-    const fetchHistory = async () => {
+    const fetchHistory = useCallback(async () => {
         try {
             const { data, error } = await supabase.rpc('get_all_time_entries');
             if (error) throw error;
@@ -96,9 +87,9 @@ export const AdminPage = () => {
         } finally {
             if (view === 'history') setLoading(false);
         }
-    };
+    }, [view]);
 
-    const fetchUsers = async (shouldSetLoading = true) => {
+    const fetchUsers = useCallback(async (shouldSetLoading = true) => {
         if (shouldSetLoading) setLoading(true);
         try {
             let query = supabase
@@ -119,9 +110,9 @@ export const AdminPage = () => {
         } finally {
             if (shouldSetLoading) setLoading(false);
         }
-    };
+    }, [isMasterAdmin, employee?.id]);
 
-    const fetchActiveUsers = async () => {
+    const fetchActiveUsers = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .from('time_entries')
@@ -134,9 +125,9 @@ export const AdminPage = () => {
         } catch (err) {
             console.error('Error fetching active users:', err);
         }
-    };
+    }, []);
 
-    const fetchAdmins = async () => {
+    const fetchAdmins = useCallback(async () => {
         setLoading(true);
         try {
             let query = supabase
@@ -154,7 +145,32 @@ export const AdminPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchSettings();
+    }, [fetchSettings]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+        if (view === 'history') {
+            fetchHistory();
+            fetchUsers(false);
+            fetchActiveUsers();
+            const interval = setInterval(() => {
+                fetchHistory();
+                fetchActiveUsers();
+            }, 5000);
+            return () => clearInterval(interval);
+        } else if (view === 'users') {
+            fetchUsers(true);
+            fetchActiveUsers();
+            const interval = setInterval(fetchActiveUsers, 5000);
+            return () => clearInterval(interval);
+        } else if (view === 'admins') {
+            fetchAdmins();
+        }
+    }, [view, fetchHistory, fetchUsers, fetchActiveUsers, fetchAdmins]);
 
     const toggleUserRole = async (userId: string, currentRole: string, userName: string) => {
         const newRole = currentRole === 'admin' ? 'employee' : 'admin';
@@ -303,32 +319,16 @@ export const AdminPage = () => {
         return `${hrs}h ${mins}m`;
     };
 
-    // Sorting Logic
-    const sortedHistory = [...history].sort((a, b) => {
-        const dateA = new Date(a.start_time).getTime();
-        const dateB = new Date(b.start_time).getTime();
-        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-    });
-
-
-
-
-    // Pagination Logic
-    const indexOfLastRow = currentPage * rowsPerPage;
-    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-    const currentRows = sortedHistory.slice(indexOfFirstRow, indexOfLastRow);
-    const totalPages = Math.ceil(sortedHistory.length / rowsPerPage);
 
     const handlePageChange = (newPage: number) => {
-        if (newPage >= 1 && newPage <= totalPages) {
-            setCurrentPage(newPage);
-        }
+        setCurrentPage(newPage);
     };
 
     const handleRowsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setRowsPerPage(Number(e.target.value));
         setCurrentPage(1);
     };
+
 
 
 
@@ -816,128 +816,18 @@ export const AdminPage = () => {
                             </div>
                         </div>
 
-                        {/* HISTORY TABLE */}
-                        <div className="bg-surface/30 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-                            <div className="p-6 border-b border-white/10 flex justify-between items-center">
-                                <h2 className="text-xl font-bold text-white">Historial de Fichajes</h2>
-                                <div className="flex items-center gap-4">
-                                    {/* Rows Selector */}
-                                    <select
-                                        value={rowsPerPage}
-                                        onChange={handleRowsPerPageChange}
-                                        className="bg-black/30 border border-white/10 rounded px-2 py-1 text-xs text-muted focus:outline-none focus:border-primary"
-                                    >
-                                        <option value={10}>10 filas</option>
-                                        <option value={20}>20 filas</option>
-                                        <option value={50}>50 filas</option>
-                                        <option value={100}>100 filas</option>
-                                    </select>
-
-                                    {/* Sort Button */}
-                                    <button
-                                        onClick={toggleSort}
-                                        className="flex items-center gap-2 h-8 px-3 rounded text-xs font-medium transition-all
-                                            bg-white/5 hover:bg-white/10 border border-white/10 text-white
-                                            hover:border-primary/50 hover:text-primary hover:shadow-[0_0_10px_rgba(0,247,255,0.2)]
-                                        "
-                                    >
-                                        <ArrowUpDown className="w-3 h-3" />
-                                        <span>{sortOrder === 'asc' ? 'Antiguos' : 'Recientes'}</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="overflow-x-auto flex-1">
-                                <table className="w-full text-center">
-                                    <thead className="bg-white/5 text-muted text-xs uppercase tracking-wider">
-                                        <tr>
-                                            <th className="p-4 text-center">Estado</th>
-                                            <th className="p-4 text-center">Empleado</th>
-                                            <th className="p-4 text-center">Fecha</th>
-                                            <th className="p-4 text-center">Entrada</th>
-                                            <th className="p-4 text-center">Salida</th>
-                                            <th className="p-4 text-center">Duración</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {loading ? (
-                                            <tr><td colSpan={6} className="p-8 text-center text-muted">Cargando datos...</td></tr>
-                                        ) : history.length === 0 ? (
-                                            <tr><td colSpan={6} className="p-8 text-center text-muted">No hay registros aún.</td></tr>
-                                        ) : (
-                                            currentRows.map((entry) => (
-                                                <motion.tr
-                                                    key={entry.id}
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    className="hover:bg-white/5 transition-colors group"
-                                                >
-                                                    <td className="p-4">
-                                                        <button
-                                                            onClick={() => entry.start_location && navigateToMap(entry.id)}
-                                                            className={`flex h-4 w-4 relative mx-auto transition-transform ${entry.start_location ? 'hover:scale-125 cursor-pointer' : 'cursor-default'}`}
-                                                            title={entry.start_location ? "Ver mapa de este turno" : "Sin datos GPS"}
-                                                        >
-                                                            {entry.status === 'active' ? (
-                                                                <>
-                                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                                                    <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
-                                                                </>
-                                                            ) : (
-                                                                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></span>
-                                                            )}
-                                                        </button>
-                                                    </td>
-                                                    <td className="p-4 text-white text-center">
-                                                        <span className="font-bold">{entry.employee_name}</span>
-                                                    </td>
-                                                    <td className="p-4 text-muted">
-                                                        {format(new Date(entry.start_time), 'dd MMM yyyy', { locale: es })}
-                                                    </td>
-                                                    <td className="p-4 text-cyan-300 font-mono text-sm">
-                                                        {format(new Date(entry.start_time), 'HH:mm')}
-                                                    </td>
-                                                    <td className="p-4 text-purple-300 font-mono text-sm">
-                                                        {entry.end_time ? format(new Date(entry.end_time), 'HH:mm') : '-'}
-                                                    </td>
-                                                    <td className="p-4 text-white/70 text-sm">
-                                                        {calculateDuration(entry.start_time, entry.end_time)}
-                                                    </td>
-                                                </motion.tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* PAGINATION CONTROLS */}
-                            <div className="p-4 border-t border-white/10 flex justify-between items-center bg-white/5">
-                                <p className="text-xs text-muted">
-                                    Mostrando {indexOfFirstRow + 1}-{Math.min(indexOfLastRow, history.length)} de {history.length}
-                                </p>
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="secondary"
-                                        className="h-8 px-3 text-xs"
-                                        onClick={() => handlePageChange(currentPage - 1)}
-                                        disabled={currentPage === 1}
-                                    >
-                                        Anterior
-                                    </Button>
-                                    <div className="flex items-center gap-1 px-2">
-                                        <span className="text-xs font-mono text-white">Pág {currentPage} / {totalPages}</span>
-                                    </div>
-                                    <Button
-                                        variant="secondary"
-                                        className="h-8 px-3 text-xs"
-                                        onClick={() => handlePageChange(currentPage + 1)}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        Siguiente
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
+                        <AdminTable
+                            history={history}
+                            loading={loading}
+                            rowsPerPage={rowsPerPage}
+                            currentPage={currentPage}
+                            sortOrder={sortOrder}
+                            toggleSort={toggleSort}
+                            handleRowsPerPageChange={handleRowsPerPageChange}
+                            handlePageChange={handlePageChange}
+                            navigateToMap={navigateToMap}
+                            calculateDuration={calculateDuration}
+                        />
                     </>
                 )}
 
@@ -1408,485 +1298,6 @@ export const AdminPage = () => {
                 onAssign={handleConfirmAssign}
                 userName={userToAssign ? `${userToAssign.first_name} ${userToAssign.last_name}` : ''}
             />
-        </div>
-    );
-};
-
-interface CreateAdminModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess: () => void;
-}
-
-const CreateAdminModal = ({ isOpen, onClose, onSuccess }: CreateAdminModalProps) => {
-    const { createAdmin } = useAuthStore();
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
-    const [pin, setPin] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    if (!isOpen) return null;
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-
-        try {
-            if (!pin.startsWith('@') || pin.length !== 6) {
-                throw new Error('El PIN de administrador DEBE tener el formato @ + 5 dígitos (ej: @12345)');
-            }
-
-            const result = await createAdmin(firstName, lastName, pin, email);
-
-            if (result.success) {
-                onSuccess();
-                setFirstName('');
-                setLastName('');
-                setEmail('');
-                setPin('');
-            } else {
-                setError(result.error || 'Error al crear administrador');
-            }
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-slate-900 border border-purple-500/30 rounded-xl w-full max-w-md p-6 shadow-2xl"
-            >
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Shield className="w-6 h-6 text-purple-500" />
-                        Crear Nuevo Administrador
-                    </h3>
-                    <button onClick={onClose} className="text-muted hover:text-white">
-                        <UserX className="w-6 h-6" />
-                    </button>
-                </div>
-
-                {error && (
-                    <div className="bg-red-500/10 border border-red-500/30 text-red-500 p-3 rounded mb-4 text-sm">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-muted uppercase mb-1">Nombre</label>
-                            <input
-                                type="text"
-                                value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
-                                className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-purple-500 focus:outline-none"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-muted uppercase mb-1">Apellidos</label>
-                            <input
-                                type="text"
-                                value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
-                                className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-purple-500 focus:outline-none"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-muted uppercase mb-1">Email (Opcional)</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-purple-500 focus:outline-none"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-muted uppercase mb-1">PIN de Admin (@ + 5 dígitos)</label>
-                        <input
-                            type="text"
-                            maxLength={6}
-                            value={pin}
-                            onChange={(e) => {
-                                const rawValue = e.target.value;
-                                let cleaned = '';
-                                if (rawValue.startsWith('@')) {
-                                    cleaned = '@' + rawValue.slice(1).replace(/\D/g, '').slice(0, 5);
-                                } else {
-                                    cleaned = rawValue.replace(/\D/g, '').slice(0, 4);
-                                }
-                                setPin(cleaned);
-                            }}
-                            className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-purple-500 focus:outline-none tracking-widest font-mono text-center text-lg"
-                            placeholder="****"
-                            required
-                        />
-                    </div>
-
-                    <div className="pt-4 flex gap-3">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            className="flex-1"
-                            onClick={onClose}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white border-none"
-                            disabled={loading}
-                        >
-                            {loading ? 'Creando...' : 'Crear Admin'}
-                        </Button>
-                    </div>
-                </form>
-            </motion.div>
-        </div>
-    );
-};
-
-interface CreateUserModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess: () => void;
-}
-
-const CreateUserModal = ({ isOpen, onClose, onSuccess }: CreateUserModalProps) => {
-    const { register, employee } = useAuthStore();
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
-    const [pin, setPin] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    if (!isOpen) return null;
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-
-        try {
-            if (pin.length !== 4) throw new Error('El PIN debe tener 4 dígitos');
-
-            // Pass the current admin's invite code to register this user as THEIR employee
-            const adminInviteCode = (employee as any)?.invite_code;
-            const result = await register(firstName, lastName, pin, email, null, adminInviteCode);
-
-            if (result.success) {
-                alert(`Usuario creado con éxito.\n\nPIN: ${pin}\nVinculado a: ${employee?.first_name} ${employee?.last_name}`);
-                onSuccess();
-                setFirstName('');
-                setLastName('');
-                setEmail('');
-                setPin('');
-            } else {
-                setError(result.error || 'Error al crear usuario');
-            }
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-slate-900 border border-primary/30 rounded-xl w-full max-w-md p-6 shadow-2xl"
-            >
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Users className="w-6 h-6 text-primary" />
-                        Registrar Nuevo Empleado
-                    </h3>
-                    <button onClick={onClose} className="text-muted hover:text-white">
-                        <UserX className="w-6 h-6" />
-                    </button>
-                </div>
-
-                {error && (
-                    <div className="bg-red-500/10 border border-red-500/30 text-red-500 p-3 rounded mb-4 text-sm">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-muted uppercase mb-1">Nombre</label>
-                            <input
-                                type="text"
-                                value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
-                                className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-primary focus:outline-none"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-muted uppercase mb-1">Apellidos</label>
-                            <input
-                                type="text"
-                                value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
-                                className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-primary focus:outline-none"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-muted uppercase mb-1">Email (Opcional)</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-primary focus:outline-none"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-muted uppercase mb-1">Asignar PIN de Acceso (4 dígitos)</label>
-                        <input
-                            type="text"
-                            maxLength={4}
-                            value={pin}
-                            onChange={(e) => {
-                                const rawValue = e.target.value;
-                                const cleaned = rawValue.replace(/\D/g, '').slice(0, 4);
-                                setPin(cleaned);
-                            }}
-                            className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-primary focus:outline-none tracking-widest font-mono text-center text-lg"
-                            placeholder="****"
-                            required
-                        />
-                    </div>
-
-                    <div className="pt-4 flex gap-3">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            className="flex-1"
-                            onClick={onClose}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            className="flex-1"
-                            disabled={loading}
-                        >
-                            {loading ? 'Registrando...' : 'Registrar Empleado'}
-                        </Button>
-                    </div>
-                </form>
-            </motion.div>
-        </div>
-    );
-};
-
-interface EditUserModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess: () => void;
-    user: any;
-}
-
-const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps) => {
-    const { updateEmployee } = useAuthStore();
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
-    const [pin, setPin] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        if (user) {
-            setFirstName(user.first_name || '');
-            setLastName(user.last_name || '');
-            setEmail(user.employee_email || '');
-            setPin(user.pin_text || '');
-        }
-    }, [user]);
-
-    if (!isOpen || !user) return null;
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-
-        try {
-            // Validations
-            // Validations
-            if (user.role === 'admin') {
-                // Master Admin Exception: Can have 8 digits (Secret), 4 digits, or @ format
-                if (user.invite_code === 'CORP-18EC') {
-                    // Allow 8 digits, 4 digits, or @+5
-                    const is8Digits = /^\d{8}$/.test(pin);
-                    const is4Digits = /^\d{4}$/.test(pin);
-                    const isAdminFormat = pin.startsWith('@') && pin.length === 6;
-
-                    if (!is8Digits && !is4Digits && !isAdminFormat) {
-                        throw new Error('El Master Admin debe tener 8 dígitos, 4 dígitos o formato @+5');
-                    }
-                } else {
-                    // Normal Admins MUST have @+5
-                    if (!pin.startsWith('@') || pin.length !== 6) {
-                        throw new Error('El PIN de administrador DEBE tener el formato @ + 5 dígitos (ej: @12345)');
-                    }
-                }
-            } else {
-                if (pin.length !== 4) throw new Error('El PIN debe tener 4 dígitos');
-            }
-
-            const updateData: any = {
-                first_name: firstName,
-                last_name: lastName,
-                employee_email: email || null,
-                pin_text: pin,
-            };
-
-            const result = await updateEmployee(user.id, updateData);
-
-            if (result.success) {
-                onSuccess();
-            } else {
-                setError(result.error || 'Error al actualizar usuario');
-            }
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-slate-900 border border-blue-500/30 rounded-xl w-full max-w-md p-6 shadow-2xl"
-            >
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Edit className="w-6 h-6 text-blue-500" />
-                        Editar Usuario
-                    </h3>
-                    <button onClick={onClose} className="text-muted hover:text-white">
-                        <UserX className="w-6 h-6" />
-                    </button>
-                </div>
-
-                {error && (
-                    <div className="bg-red-500/10 border border-red-500/30 text-red-500 p-3 rounded mb-4 text-sm">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-muted uppercase mb-1">Nombre</label>
-                            <input
-                                type="text"
-                                value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
-                                className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-blue-500 focus:outline-none"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-muted uppercase mb-1">Apellidos</label>
-                            <input
-                                type="text"
-                                value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
-                                className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-blue-500 focus:outline-none"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-muted uppercase mb-1">Email (Opcional)</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-blue-500 focus:outline-none"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-muted uppercase mb-1">
-                            {user.role === 'admin' ? 'PIN de Admin (@ + 5 dígitos)' : 'PIN de Usuario (4 dígitos)'}
-                        </label>
-                        <input
-                            type="text"
-                            maxLength={user.invite_code === 'CORP-18EC' ? 8 : (user.role === 'admin' || pin.startsWith('@') ? 6 : 4)}
-                            value={pin}
-                            onChange={(e) => {
-                                const rawValue = e.target.value;
-                                let cleaned = '';
-                                if (rawValue.startsWith('@')) {
-                                    cleaned = '@' + rawValue.slice(1).replace(/\D/g, '').slice(0, 5);
-                                } else {
-                                    // Check if Master Admin to allow 8 digits
-                                    const maxDigits = user.invite_code === 'CORP-18EC' ? 8 : 4;
-                                    cleaned = rawValue.replace(/\D/g, '').slice(0, maxDigits);
-                                }
-                                setPin(cleaned);
-                            }}
-                            className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-blue-500 focus:outline-none tracking-widest font-mono text-center text-lg"
-                            placeholder="****"
-                            required
-                        />
-                        <p className="text-[10px] text-muted mt-1 text-center">
-                            Modificar esto cambiará la clave de acceso del usuario.
-                        </p>
-                    </div>
-
-                    <div className="pt-4 flex gap-3">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            className="flex-1"
-                            onClick={onClose}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none"
-                            disabled={loading}
-                        >
-                            {loading ? 'Guardando...' : 'Guardar Cambios'}
-                        </Button>
-                    </div>
-                </form>
-            </motion.div>
         </div>
     );
 };

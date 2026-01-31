@@ -104,7 +104,6 @@ export const LiveUserMap = () => {
             }
 
             // Process active shifts
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const filteredShifts = activeShifts;
 
             if (filteredShifts.length === 0) {

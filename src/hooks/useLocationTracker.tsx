@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTimeStore } from '../stores/useTimeStore';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -43,11 +43,12 @@ export const useLocationTracker = () => {
     }, [status, currentShiftId, employee, lastKnownLocation]);
 
     const watchId = useRef<number | null>(null);
+    const [isTracking, setIsTracking] = useState(false);
 
     useEffect(() => {
         // START TRACKING condition
         if (status === 'active' && 'geolocation' in navigator) {
-
+            setIsTracking(true);
 
             watchId.current = navigator.geolocation.watchPosition(
                 async (position) => {
@@ -109,6 +110,7 @@ export const useLocationTracker = () => {
                 },
                 (error) => {
                     console.error('Error getting location:', error);
+                    setIsTracking(false);
                 },
                 GPS_OPTIONS
             );
@@ -116,10 +118,10 @@ export const useLocationTracker = () => {
         } else {
             // STOP TRACKING
             if (watchId.current !== null) {
-
                 navigator.geolocation.clearWatch(watchId.current);
                 watchId.current = null;
             }
+            setIsTracking(false);
         }
 
         // Cleanup on unmount
@@ -130,5 +132,5 @@ export const useLocationTracker = () => {
         };
     }, [status]); // Only re-run if status changes (active/idle)
 
-    return { isTracking: !!watchId.current };
+    return { isTracking };
 };

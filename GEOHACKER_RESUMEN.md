@@ -10,7 +10,7 @@ La aplicación sigue una arquitectura de Single Page Application (SPA) con un ba
 - **Cliente:** React 19 (Vite) para una experiencia de usuario rápida y reactiva.
 - **Estado Global:** Zustand para una gestión de estado ligera y eficiente.
 - **Servidor de Datos:** Supabase maneja la base de datos PostgreSQL, la autenticación y el almacenamiento en tiempo real.
-- **Geolocalización:** Integración con la API nativa de geolocalización del navegador y visualización mediante mapas interactivos de **Leaflet**.
+- **Geolocalización:** Integración con la API nativa de geolocalización del navegador y visualización mediante mapas interactivos de **Google Maps**.
 
 ## 3. Pila Tecnológica Detallada
 | Componente | Tecnología |
@@ -20,7 +20,7 @@ La aplicación sigue una arquitectura de Single Page Application (SPA) con un ba
 | Base de Datos | Supabase (PostgreSQL) |
 | Estilos | Tailwind CSS |
 | Animaciones | Framer Motion |
-| Mapas | Leaflet / React-Leaflet |
+| Mapas | Google Maps |
 | Notificaciones | EmailJS |
 | Gestión de Estado | Zustand |
 
@@ -44,7 +44,7 @@ La aplicación sigue una arquitectura de Single Page Application (SPA) con un ba
 
 ## 5. Historial de Desarrollo (Línea de Tiempo)
 - **Fase 1 (Inicio):** Creación del esquema de base de datos y sistema básico de autenticación.
-- **Fase 2 (Mapas):** Implementación del rastreo GPS y visualización histórica de rutas.
+- **Fase 2 (Mapas):** Implementación del rastreo GPS y visualización histórica de rutas mediante Google Maps.
 - **Fase 3 (Admin Panel):** Desarrollo del dashboard centralizado para supervisores.
 - **Fase 4 (Seguridad):** Refuerzo de políticas de seguridad (RLS) y sistema de validación de Master Admin.
 - **Fase 5 (Pulido):** Optimización de interfaz, limpieza de logs de depuración y preparación para producción.
