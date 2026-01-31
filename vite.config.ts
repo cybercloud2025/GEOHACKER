@@ -15,7 +15,7 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-framer': ['framer-motion'],
           'vendor-ui': ['lucide-react', 'clsx', 'tailwind-merge'],
-          'vendor-maps': ['leaflet', 'react-leaflet', '@vis.gl/react-google-maps'],
+          'vendor-google-maps': ['@vis.gl/react-google-maps'],
           'vendor-pdf': ['jspdf', 'jspdf-autotable'],
           'vendor-data': ['date-fns', 'zustand', '@supabase/supabase-js']
         }
