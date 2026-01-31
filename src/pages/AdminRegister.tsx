@@ -236,7 +236,7 @@ export const AdminRegisterPage = () => {
                                         value={formData.pin}
                                         onChange={handleInputChange}
                                         disabled={isLoading}
-                                        className="bg-black/40 border-4 border-white/20 text-[#39FF14] placeholder:text-[#39FF14]/30 text-center text-base font-mono tracking-[0.4em] h-11 rounded-xl focus:border-cyan-500 focus:shadow-[0_0_30px_rgba(34,211,238,0.2)]"
+                                        className="bg-black/40 border-4 border-blue-500/50 text-[#39FF14] placeholder:text-[#39FF14]/30 text-center text-base font-mono tracking-[0.4em] h-11 rounded-xl focus:border-blue-400 focus:shadow-[0_0_30px_rgba(59,130,246,0.3)]"
                                     />
                                     <p className="text-[10px] text-yellow-500 font-bold tracking-[0.2em] text-center uppercase">USA @ PARA PIN DE ADMINISTRADOR</p>
                                 </div>
