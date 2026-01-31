@@ -6,6 +6,10 @@
 body {
   @apply bg-background text-text antialiased overflow-x-hidden;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-display: swap;
+  /* Hardware acceleration trigger for smoother animations in Safari */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
 }
 
 
@@ -37,9 +41,12 @@ body {
     text-shadow:
       0 0 5px #fff,
       0 0 10px #fff,
-      0 0 20px #00f7ff,
-      0 0 30px #00f7ff,
-      0 0 40px #00f7ff;
+      0 0 20px rgba(0, 247, 255, 0.4);
+
+    /* Safari optimization: avoid multiple huge blurs in text shadows */
+    @media (max-width: 768px) {
+      text-shadow: 0 0 10px rgba(0, 247, 255, 0.6);
+    }
   }
 
   .shadow-glow-primary {

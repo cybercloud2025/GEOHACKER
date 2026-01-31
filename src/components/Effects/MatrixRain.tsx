@@ -7,18 +7,31 @@ export const MatrixRain = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false }); // Optimization: disable alpha if not needed
         if (!ctx) return;
+
+        // Optimization: Handle reduced motion
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReducedMotion) {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
 
         let frameId: number;
         let lastTime = 0;
-        const fps = 30;
+        const isMobile = window.innerWidth < 768;
+        const fps = isMobile ? 20 : 30; // Lower FPS on mobile for Safari/Battery
         const interval = 1000 / fps;
 
         const resize = () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             initDrops();
+
+            // Re-fill background on resize to avoid flickering
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         };
 
         const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱGEZE DEBE PEオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';

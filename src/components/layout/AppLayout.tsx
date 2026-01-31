@@ -10,14 +10,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         <div className="min-h-screen bg-background text-text overflow-hidden relative font-sans selection:bg-primary/30">
 
             {/* GLOBAL BACKGROUND EFFECTS */}
-            <div className="fixed inset-0 z-0 pointer-events-none">
-                {/* Glow Top Left */}
-                <div className="absolute -top-[20%] -left-[10%] w-[70vw] h-[70vw] bg-primary/5 rounded-full blur-[120px] opacity-70" />
-                {/* Glow Bottom Right */}
-                <div className="absolute -bottom-[20%] -right-[10%] w-[70vw] h-[70vw] bg-secondary/5 rounded-full blur-[120px] opacity-70" />
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+                {/* Glow Top Left - Optimized for Safari */}
+                <div
+                    className="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] bg-primary/5 rounded-full blur-[60px] opacity-60"
+                    style={{ willChange: 'transform, opacity' }}
+                />
+                {/* Glow Bottom Right - Optimized for Safari */}
+                <div
+                    className="absolute -bottom-[10%] -right-[10%] w-[50vw] h-[50vw] bg-secondary/5 rounded-full blur-[60px] opacity-60"
+                    style={{ willChange: 'transform, opacity' }}
+                />
 
-                {/* Grid Pattern (Optional) */}
-                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]" />
+                {/* Grid Pattern - Low opacity for better performance */}
+                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
             </div>
 
             {/* CONTENT WRAPPER */}
