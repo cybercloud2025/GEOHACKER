@@ -19,7 +19,9 @@ export const AdminRegisterPage = () => {
         lastName: '',
         email: '',
         pin: '',
-        avatarPreview: ''
+        avatarPreview: '',
+        companyName: '',
+        fiscalId: ''
     });
 
     useEffect(() => {
@@ -57,7 +59,7 @@ export const AdminRegisterPage = () => {
         e.preventDefault();
         setError('');
 
-        if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.pin || !formData.email.trim()) {
+        if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.pin || !formData.email.trim() || !formData.companyName.trim() || !formData.fiscalId.trim()) {
             setError('TODOS LOS CAMPOS SON OBLIGATORIOS');
             return;
         }
@@ -75,7 +77,9 @@ export const AdminRegisterPage = () => {
             formData.lastName,
             formData.pin,
             formData.email,
-            formData.avatarPreview || null
+            formData.avatarPreview || null,
+            formData.companyName,
+            formData.fiscalId
         );
 
         if (regSuccess) {
@@ -178,22 +182,22 @@ export const AdminRegisterPage = () => {
                             </motion.div>
                         ) : (
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-3">
                                     <Input
                                         name="firstName"
                                         placeholder="NOMBRE"
                                         value={formData.firstName}
                                         onChange={handleInputChange}
                                         disabled={isLoading}
-                                        className="bg-yellow-100 border-2 border-white/20 text-black placeholder:text-black/40 focus:border-cyan-500 focus:bg-yellow-100 focus:text-black rounded-xl h-12 text-center font-bold tracking-wider transition-none"
+                                        className="bg-yellow-100 border-2 border-white/20 text-black placeholder:text-black/40 focus:border-cyan-500 focus:bg-yellow-100 focus:text-black rounded-xl h-10 text-center font-bold tracking-wider text-sm transition-none"
                                     />
                                     <Input
                                         name="lastName"
-                                        placeholder="APELLIDO"
+                                        placeholder="APELLIDOS"
                                         value={formData.lastName}
                                         onChange={handleInputChange}
                                         disabled={isLoading}
-                                        className="bg-yellow-100 border-2 border-white/20 text-black placeholder:text-black/40 focus:border-cyan-500 focus:bg-yellow-100 focus:text-black rounded-xl h-12 text-center font-bold tracking-wider transition-none"
+                                        className="bg-yellow-100 border-2 border-white/20 text-black placeholder:text-black/40 focus:border-cyan-500 focus:bg-yellow-100 focus:text-black rounded-xl h-10 text-center font-bold tracking-wider text-sm transition-none"
                                     />
                                 </div>
 
@@ -204,7 +208,25 @@ export const AdminRegisterPage = () => {
                                     value={formData.email}
                                     onChange={handleInputChange}
                                     disabled={isLoading}
-                                    className="bg-yellow-100 border-2 border-white/20 text-black placeholder:text-black/40 focus:border-cyan-500 focus:bg-yellow-100 focus:text-black rounded-xl h-12 text-center font-bold tracking-wider transition-none"
+                                    className="bg-yellow-100 border-2 border-white/20 text-black placeholder:text-black/40 focus:border-cyan-500 focus:bg-yellow-100 focus:text-black rounded-xl h-10 text-center font-bold tracking-wider text-sm transition-none"
+                                />
+
+                                <Input
+                                    name="companyName"
+                                    placeholder="NOMBRE DE LA EMPRESA"
+                                    value={formData.companyName}
+                                    onChange={handleInputChange}
+                                    disabled={isLoading}
+                                    className="bg-yellow-100 border-2 border-white/20 text-black placeholder:text-black/40 focus:border-cyan-500 focus:bg-yellow-100 focus:text-black rounded-xl h-10 text-center font-bold tracking-wider text-sm transition-none"
+                                />
+
+                                <Input
+                                    name="fiscalId"
+                                    placeholder="DNI / NIF / CIF"
+                                    value={formData.fiscalId}
+                                    onChange={handleInputChange}
+                                    disabled={isLoading}
+                                    className="bg-yellow-100 border-2 border-white/20 text-black placeholder:text-black/40 focus:border-cyan-500 focus:bg-yellow-100 focus:text-black rounded-xl h-10 text-center font-bold tracking-wider text-sm transition-none"
                                 />
 
                                 <div className="space-y-2">
@@ -214,7 +236,7 @@ export const AdminRegisterPage = () => {
                                         value={formData.pin}
                                         onChange={handleInputChange}
                                         disabled={isLoading}
-                                        className="bg-black/40 border-4 border-white/20 text-[#39FF14] placeholder:text-[#39FF14]/30 text-center text-lg font-mono tracking-[0.4em] h-14 rounded-xl focus:border-cyan-500 focus:shadow-[0_0_30px_rgba(34,211,238,0.2)]"
+                                        className="bg-black/40 border-4 border-white/20 text-[#39FF14] placeholder:text-[#39FF14]/30 text-center text-base font-mono tracking-[0.4em] h-11 rounded-xl focus:border-cyan-500 focus:shadow-[0_0_30px_rgba(34,211,238,0.2)]"
                                     />
                                     <p className="text-[10px] text-yellow-500 font-bold tracking-[0.2em] text-center uppercase">USA @ PARA PIN DE ADMINISTRADOR</p>
                                 </div>
@@ -233,9 +255,9 @@ export const AdminRegisterPage = () => {
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full h-14 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-black font-black tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30_rgba(34,211,238,0.5)] flex items-center justify-center"
+                                    className="w-full h-11 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-black text-sm font-black tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30_rgba(34,211,238,0.5)] flex items-center justify-center"
                                 >
-                                    <UserPlus className="w-5 h-5 mr-2" />
+                                    <UserPlus className="w-4 h-4 mr-2" />
                                     CREAR ORGANIZACIÓN
                                 </button>
 

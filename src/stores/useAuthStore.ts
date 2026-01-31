@@ -24,7 +24,7 @@ interface AuthState {
     toggleRegistration: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
     loginWithPin: (pin: string) => Promise<{ success: boolean; error?: string }>;
     register: (firstName: string, lastName: string, pin: string, email?: string | null, avatarUrl?: string | null, inviteCode?: string | null) => Promise<{ success: boolean; error?: string }>;
-    createAdmin: (firstName: string, lastName: string, pin: string, email?: string | null, avatarUrl?: string | null) => Promise<{ success: boolean; error?: string }>;
+    createAdmin: (firstName: string, lastName: string, pin: string, email?: string | null, avatarUrl?: string | null, companyName?: string | null, fiscalId?: string | null) => Promise<{ success: boolean; error?: string }>;
     createUser: (firstName: string, lastName: string, pin: string, inviteCode: string, email?: string | null, avatarUrl?: string | null) => Promise<{ success: boolean; error?: string }>;
     updateEmployee: (id: string, data: Partial<{ first_name: string; last_name: string; employee_email: string | null; pin_text: string; role: string; verified: boolean; admin_id: string; invite_code: string }>) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
@@ -172,13 +172,15 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
-            createAdmin: async (firstName: string, lastName: string, pin: string, email: string | null = null, avatarUrl: string | null = null) => {
+            createAdmin: async (firstName: string, lastName: string, pin: string, email: string | null = null, avatarUrl: string | null = null, companyName: string | null = null, fiscalId: string | null = null) => {
                 set({ isLoading: true });
                 try {
                     const cleanFirstName = firstName.trim();
                     const cleanLastName = lastName.trim();
                     const cleanPin = pin.trim();
                     const cleanEmail = email?.trim() || null;
+                    const cleanCompanyName = companyName?.trim() || null;
+                    const cleanFiscalId = fiscalId?.trim() || null;
 
                     const { data, error } = await supabase
                         .rpc('register_employee_with_code', {
@@ -188,7 +190,9 @@ export const useAuthStore = create<AuthState>()(
                             p_email: cleanEmail,
                             p_avatar_url: avatarUrl,
                             p_invite_code: 'NEW',
-                            p_verified: false // New normal admins must be validated by Master Admin
+                            p_verified: false,
+                            p_company_name: cleanCompanyName,
+                            p_fiscal_id: cleanFiscalId
                         });
 
                     if (error) throw error;
