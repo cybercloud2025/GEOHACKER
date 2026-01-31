@@ -77,8 +77,7 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true });
                 try {
                     // RPC call finds user with that PIN hash.
-
-                    const { data: employeeData, error } = await supabase
+                    const { data: employeeData } = await supabase
                         .rpc('login_with_pin', { p_pin: pin });
 
                     if (employeeData) {
@@ -97,7 +96,6 @@ export const useAuthStore = create<AuthState>()(
                         return { success: true };
                     }
                     throw new Error('Usuario no registrado');
-
                 } catch (error: any) {
                     console.error('Login error:', error);
                     set({ isLoading: false });
@@ -204,8 +202,6 @@ export const useAuthStore = create<AuthState>()(
                         );
                     }
 
-
-
                     set({ isLoading: false });
                     return { success: true };
                 } catch (error: any) {
@@ -255,10 +251,6 @@ export const useAuthStore = create<AuthState>()(
                             (data as Employee).invite_code || inviteCode
                         );
                     }
-
-
-
-
 
                     set({ isLoading: false });
                     return { success: true };
@@ -316,9 +308,6 @@ export const useAuthStore = create<AuthState>()(
                 const currentEmployee = get().employee;
                 if (!currentEmployee) return;
 
-                // Don't overwrite originalAdmin if we are already deeply impersonating (though UI might not allow deep nesting easily)
-                // If originalAdmin is null, it means we are the "Master/Real" user, so save it.
-                // If originalAdmin is ALREADY set, we are already impersonating, so we just switch the active employee but keep the original Master.
                 const originalAdmin = get().originalAdmin || currentEmployee;
 
                 set({
