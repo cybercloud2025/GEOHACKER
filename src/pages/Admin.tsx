@@ -333,6 +333,7 @@ export const AdminPage = () => {
 
 
     const exportToPDF = () => {
+        setLoading(true);
         const doc = new jsPDF();
 
         // Preload Image
@@ -503,10 +504,12 @@ export const AdminPage = () => {
 
             // Save PDF
             doc.save(`reporte_usuarios_${new Date().getTime()}.pdf`);
+            setLoading(false);
         };
 
         img.onerror = () => {
             alert('Error al cargar el logo para el PDF.');
+            setLoading(false);
         };
     };
 
@@ -666,6 +669,7 @@ export const AdminPage = () => {
     };
 
     const openAdminsPdfPreview = async () => {
+        setLoading(true);
         try {
             const doc = await generateAdminsPDF();
             pdfDocRef.current = doc;
@@ -674,6 +678,8 @@ export const AdminPage = () => {
         } catch (error) {
             console.error(error);
             alert('Error al generar la vista previa del PDF.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -897,9 +903,9 @@ export const AdminPage = () => {
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
                                         {loading ? (
-                                            <tr><td colSpan={5} className="p-8 text-center text-muted">Cargando usuarios...</td></tr>
+                                            <tr><td colSpan={6} className="p-8 text-center text-muted">Cargando usuarios...</td></tr>
                                         ) : users.length === 0 ? (
-                                            <tr><td colSpan={5} className="p-8 text-center text-muted">No hay usuarios registrados.</td></tr>
+                                            <tr><td colSpan={6} className="p-8 text-center text-muted">No hay usuarios registrados.</td></tr>
                                         ) : (
                                             users.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage).map((user) => (
                                                 <tr key={user.id} className="hover:bg-white/5 transition-colors group">
@@ -1120,9 +1126,9 @@ export const AdminPage = () => {
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
                                         {loading ? (
-                                            <tr><td colSpan={5} className="p-8 text-center text-muted">Cargando administradores...</td></tr>
+                                            <tr><td colSpan={6} className="p-8 text-center text-muted">Cargando administradores...</td></tr>
                                         ) : admins.length === 0 ? (
-                                            <tr><td colSpan={5} className="p-8 text-center text-muted">No hay administradores registrados.</td></tr>
+                                            <tr><td colSpan={6} className="p-8 text-center text-muted">No hay administradores registrados.</td></tr>
                                         ) : (
                                             admins.map((admin) => (
                                                 <motion.tr
