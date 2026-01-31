@@ -1,15 +1,7 @@
-@import 'leaflet/dist/leaflet.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Leaflet Dark Mode Hack */
-.leaflet-layer,
-.leaflet-control-zoom-in,
-.leaflet-control-zoom-out,
-.leaflet-control-attribution {
-  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
-}
 
 body {
   @apply bg-background text-text antialiased overflow-x-hidden;
@@ -34,17 +26,6 @@ body {
   @apply bg-muted;
 }
 
-/* Leaflet Fixes */
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-.leaflet-control-container .leaflet-top,
-.leaflet-control-container .leaflet-bottom {
-  z-index: 1000 !important;
-}
 
 /* --- CYBERPUNK UTILITIES --- */
 @layer utilities {

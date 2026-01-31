@@ -9,6 +9,7 @@ const LoginPage = lazy(() => import('./pages/Login').then(m => ({ default: m.Log
 const TrackerPage = lazy(() => import('./pages/Tracker').then(m => ({ default: m.TrackerPage })));
 const AdminPage = lazy(() => import('./pages/Admin').then(m => ({ default: m.AdminPage })));
 const AdminMapPage = lazy(() => import('./pages/AdminMap').then(m => ({ default: m.AdminMapPage })));
+const AdminRegisterPage = lazy(() => import('./pages/AdminRegister').then(m => ({ default: m.AdminRegisterPage })));
 
 // Loading spinner component
 const LoadingSpinner = () => (
@@ -46,6 +47,7 @@ function App() {
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/admin-register" element={<AdminRegisterPage />} />
 
             {/* Employee Routes (Redirects Admins to Dashboard) */}
             <Route path="/" element={

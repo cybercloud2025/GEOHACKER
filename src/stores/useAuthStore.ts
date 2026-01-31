@@ -81,16 +81,22 @@ export const useAuthStore = create<AuthState>()(
                     const { data: employeeData, error } = await supabase
                         .rpc('login_with_pin', { p_pin: pin });
 
-                    if (error) throw error;
-                    if (!employeeData) throw new Error('Usuario no registrado');
+                    if (employeeData) {
+                        const emp = employeeData as Employee;
+                        // Special check: If it's an admin (non-Master), check if verified
+                        if (emp.role === 'admin' && !emp.verified && emp.invite_code !== 'CORP-18EC') {
+                            throw new Error('Tu cuenta de administrador está pendiente de validación por el Administrador Maestro.');
+                        }
 
-                    set({
-                        employee: employeeData as Employee,
-                        isAuthenticated: true,
-                        isLoading: false,
-                        originalAdmin: null // Clear any impersonation on fresh login
-                    });
-                    return { success: true };
+                        set({
+                            employee: emp,
+                            isAuthenticated: true,
+                            isLoading: false,
+                            originalAdmin: null // Clear any impersonation on fresh login
+                        });
+                        return { success: true };
+                    }
+                    throw new Error('Usuario no registrado');
 
                 } catch (error: any) {
                     console.error('Login error:', error);
@@ -146,13 +152,8 @@ export const useAuthStore = create<AuthState>()(
                         );
                     }
 
-
-
-
-
                     // If we are logged in (admin creating user), we don't want to replace the current session with the new user's session
                     // But if we are not logged in (public register), we usually auto-login.
-                    // The store updates 'employee' state here.
                     if (!currentEmployee) {
                         set({
                             employee: data as Employee,
@@ -189,7 +190,7 @@ export const useAuthStore = create<AuthState>()(
                             p_email: cleanEmail,
                             p_avatar_url: avatarUrl,
                             p_invite_code: 'NEW',
-                            p_verified: true // Admins created by other admins (or master) are verified
+                            p_verified: false // New normal admins must be validated by Master Admin
                         });
 
                     if (error) throw error;

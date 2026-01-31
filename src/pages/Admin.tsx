@@ -310,6 +310,9 @@ export const AdminPage = () => {
         return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
 
+
+
+
     // Pagination Logic
     const indexOfLastRow = currentPage * rowsPerPage;
     const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -1298,17 +1301,16 @@ export const AdminPage = () => {
                                                     </td>
                                                     <td className="p-4 text-center">
                                                         <div className="flex items-center justify-center gap-2">
-                                                            <button
-                                                                onClick={() => handleVerifyUser(admin)}
-                                                                className={`flex items-center gap-2 px-3 py-1.5 border transition-all rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse hover:animate-none group ${!admin.verified
-                                                                    ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]'
-                                                                    : 'hidden'
-                                                                    }`}
-                                                                title="Validar este Administrador"
-                                                            >
-                                                                <Shield className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                                                Validar Admin
-                                                            </button>
+                                                            {isMasterAdmin && !admin.verified && (
+                                                                <button
+                                                                    onClick={() => handleVerifyUser(admin)}
+                                                                    className="flex items-center gap-2 px-3 py-1.5 border transition-all rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse hover:animate-none group bg-purple-500/10 border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+                                                                    title="Validar este Administrador"
+                                                                >
+                                                                    <Shield className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                                    Validar Admin
+                                                                </button>
+                                                            )}
                                                             <button
                                                                 onClick={() => {
                                                                     useAuthStore.getState().impersonate(admin);

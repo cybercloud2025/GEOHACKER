@@ -49,7 +49,6 @@ export const useTimeStore = create<TimeState>()(
                     .is('end_time', null)
                     .order('start_time', { ascending: false })
                     .limit(1)
-                    .limit(1)
                     .maybeSingle();
 
                 if (data) {

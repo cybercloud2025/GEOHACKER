@@ -30,7 +30,6 @@ BEGIN
     t.start_location,
     t.end_location
   FROM time_entries t
-  JOIN employees e ON t.employee_id = e.id
-  ORDER BY t.start_time DESC;
+  JOIN employees e ON t.employee_id = e.id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

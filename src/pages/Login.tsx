@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, ShieldCheck } from 'lucide-react';
 import hackerIcon from '../assets/hacker-icon.png';
+import adminLogo from '../assets/admin-logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
 import { Input } from '../components/ui/Input';
@@ -244,15 +245,27 @@ export const LoginPage = () => {
                                             <input type="file" name="avatar" accept="image/*" className="hidden" onChange={handleInputChange} />
                                         </label>
                                     ) : (
-                                        <div
-                                            onClick={handleSecretTrigger}
-                                            className="relative w-28 h-28 bg-black/60 border-2 border-white/30 rounded-full flex items-center justify-center cursor-default hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] transition-all overflow-hidden"
-                                        >
-                                            <img
-                                                src={hackerIcon}
-                                                alt="System"
-                                                className="w-full h-full object-cover opacity-100"
-                                            />
+                                        <div className="flex items-center gap-6">
+                                            <div
+                                                onClick={handleSecretTrigger}
+                                                className="relative w-32 h-32 bg-black/60 border-2 border-white/30 rounded-full flex items-center justify-center cursor-default hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] transition-all overflow-hidden"
+                                            >
+                                                <img
+                                                    src={hackerIcon}
+                                                    alt="System"
+                                                    className="w-full h-full object-cover opacity-100"
+                                                />
+                                            </div>
+                                            <div
+                                                onDoubleClick={() => navigate('/admin-register')}
+                                                className="relative w-32 h-32 flex items-center justify-center cursor-pointer scale-95 sm:scale-100 group/admin-logo"
+                                            >
+                                                <img
+                                                    src={adminLogo}
+                                                    alt="Admin System"
+                                                    className="w-full h-full object-contain opacity-100 drop-shadow-[0_10px_30px_rgba(168,85,247,0.3)] group-hover/admin-logo:drop-shadow-[0_10px_40px_rgba(168,85,247,0.5)] transition-all"
+                                                />
+                                            </div>
                                         </div>
                                     )}
                                 </motion.div>

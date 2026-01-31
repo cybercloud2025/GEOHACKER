@@ -119,8 +119,6 @@ export const TrackerPage = () => {
                              `}
                         />
 
-                        {/* Scanning Line Animation - REMOVED for clarity */}
-
                         <div className="relative shrink-0">
                             <div className={`w-14 h-14 rounded-full border-2 flex items-center justify-center text-xl font-black transition-all duration-500 shadow-sm
                                 ${isActive ? 'bg-cyan-50 border-cyan-200 text-cyan-700' : isBreak ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 'bg-red-50 border-red-200 text-red-700'}
