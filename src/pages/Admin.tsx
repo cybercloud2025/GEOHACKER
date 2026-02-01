@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { Button } from '../components/ui/Button';
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
-import { Users, Trash2, UserX, MapPin, Shield, FileText, FileDown, Power, UserPlus, Edit, LogIn, ThumbsUp, RefreshCcw, Search } from 'lucide-react';
+import { Trash2, Edit, Save, Plus, FileDown, Shield, UserPlus, X, LogIn, Bell, Check, AlertTriangle, Eye, RefreshCcw, MapPin, ThumbsUp, LayoutGrid, Users, Map, Clock, Power, UserX, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LiveUserMap } from '../components/Admin/LiveUserMap';
 import jsPDF from 'jspdf';
@@ -16,7 +16,9 @@ import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { AssignAdminModal } from '../components/Admin/AssignAdminModal';
 import { AdminTable } from '../components/Admin/AdminTable';
 import { CreateAdminModal, CreateUserModal, EditUserModal } from '../components/Admin/UserModals';
-import { SearchAdminModal } from '../components/Admin/SearchAdminModal';
+
+import { UserDetailsModal } from '../components/Admin/UserDetailsModal';
+
 
 interface LocationData {
     lat: number;
@@ -79,7 +81,9 @@ export const AdminPage = () => {
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [userToAssign, setUserToAssign] = useState<AdminUser | null>(null);
     const [activeUserIds, setActiveUserIds] = useState<Set<string>>(new Set());
-    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+    const [userDetailsOpen, setUserDetailsOpen] = useState(false);
+    const [selectedUserForDetails, setSelectedUserForDetails] = useState<any>(null);
 
 
     const fetchHistory = useCallback(async () => {
@@ -102,7 +106,8 @@ export const AdminPage = () => {
                 .order('created_at', { ascending: false });
 
             if (isMasterAdmin) {
-                query = query.or(`admin_id.eq.${employee?.id},verified.eq.false`);
+                // Modified: Exclude admins from the general user list
+                query = query.neq('role', 'admin').or(`admin_id.eq.${employee?.id},verified.eq.false`);
             } else {
                 query = query.neq('role', 'admin').eq('admin_id', employee?.id);
             }
@@ -110,7 +115,7 @@ export const AdminPage = () => {
             const { data, error } = await query;
 
             if (error) throw error;
-            setUsers(data || []);
+            setUsers((data || []).filter((user: any) => user.role !== 'admin'));
         } finally {
             if (shouldSetLoading) setLoading(false);
         }
@@ -778,11 +783,19 @@ export const AdminPage = () => {
                             Ubicación de usuarios
                         </Button>
                         <Button
-                            onClick={() => setView(view === 'history' ? 'users' : 'history')}
-                            variant="primary"
-                            className="h-11 shadow-glow-primary"
+                            onClick={() => setView('users')}
+                            variant={view === 'users' ? 'primary' : 'secondary'}
+                            className="flex items-center gap-2 border-primary/30 text-primary hover:bg-primary/10 h-11"
                         >
-                            {view === 'history' ? 'Ver Usuarios' : 'Ver Historial'}
+                            <Users className="w-4 h-4" />
+                            Empleados
+                        </Button>
+                        <Button
+                            onClick={() => setView('history')}
+                            variant={view === 'history' ? 'primary' : 'secondary'}
+                            className="h-11 border-white/10 text-muted hover:text-white"
+                        >
+                            Ver Fichajes
                         </Button>
                         <Button
                             onClick={() => {
@@ -990,14 +1003,30 @@ export const AdminPage = () => {
                                                                     </>
                                                                 )}
                                                             </button>
-                                                        ) : !user.verified && (
-                                                            <button
-                                                                onClick={() => handleVerifyUser(user)}
-                                                                className="p-2 text-green-400 hover:text-green-500 transition-colors rounded-lg hover:bg-green-500/10"
-                                                                title="Verificar Usuario"
-                                                            >
-                                                                <ThumbsUp className="w-5 h-5" />
-                                                            </button>
+                                                        ) : (
+                                                            <>
+                                                                {!user.verified && (
+                                                                    <button
+                                                                        onClick={() => handleVerifyUser(user)}
+                                                                        className="p-2 text-green-400 hover:text-green-500 transition-colors rounded-lg hover:bg-green-500/10"
+                                                                        title="Verificar Usuario"
+                                                                    >
+                                                                        <ThumbsUp className="w-5 h-5" />
+                                                                    </button>
+                                                                )}
+                                                                {isMasterAdmin && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setSelectedUserForDetails(user);
+                                                                            setUserDetailsOpen(true);
+                                                                        }}
+                                                                        className="p-2 text-cyan-400 hover:text-cyan-300 transition-colors rounded-lg hover:bg-cyan-500/10"
+                                                                        title="Ver Ficha Completa"
+                                                                    >
+                                                                        <Eye className="w-5 h-5" />
+                                                                    </button>
+                                                                )}
+                                                            </>
                                                         )}
                                                         <button
                                                             onClick={() => {
@@ -1114,14 +1143,7 @@ export const AdminPage = () => {
                                         <FileDown className="w-4 h-4" />
                                         PDF Admin
                                     </Button>
-                                    <Button
-                                        onClick={() => setIsSearchModalOpen(true)}
-                                        variant="secondary"
-                                        className="h-9 px-4 text-xs flex items-center gap-2 border-cyan-500/20 hover:bg-cyan-500/10 text-cyan-400"
-                                    >
-                                        <Search className="w-4 h-4" />
-                                        Buscar Info
-                                    </Button>
+
                                 </div>
                             </div>
                             <div className="overflow-x-auto">
@@ -1209,6 +1231,16 @@ export const AdminPage = () => {
                                                     </td>
                                                     <td className="p-4 text-center">
                                                         <div className="flex items-center justify-center gap-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedUserForDetails(admin);
+                                                                    setUserDetailsOpen(true);
+                                                                }}
+                                                                className="p-2 text-cyan-400 hover:text-cyan-300 transition-colors rounded-lg hover:bg-cyan-500/10"
+                                                                title="Ver Ficha Completa"
+                                                            >
+                                                                <Eye className="w-5 h-5" />
+                                                            </button>
                                                             {isMasterAdmin && !admin.verified && (
                                                                 <button
                                                                     onClick={() => handleVerifyUser(admin)}
@@ -1317,12 +1349,18 @@ export const AdminPage = () => {
                 userName={userToAssign ? `${userToAssign.first_name} ${userToAssign.last_name}` : ''}
             />
 
-            <SearchAdminModal
-                isOpen={isSearchModalOpen}
-                onClose={() => setIsSearchModalOpen(false)}
-                admins={admins}
+
+
+            <UserDetailsModal
+                isOpen={userDetailsOpen}
+                onClose={() => {
+                    setUserDetailsOpen(false);
+                    setSelectedUserForDetails(null);
+                }}
+                user={selectedUserForDetails}
+                history={history}
             />
-        </div>
+        </div >
     );
 };
 
