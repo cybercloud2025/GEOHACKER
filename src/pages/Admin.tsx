@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { Button } from '../components/ui/Button';
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
-import { Trash2, Edit, FileDown, Shield, UserPlus, LogIn, Eye, RefreshCcw, MapPin, ThumbsUp, LayoutGrid, Users, Map, Clock, Power, UserX, FileText } from 'lucide-react';
+import { Trash2, Edit, FileDown, Shield, UserPlus, LogIn, Eye, RefreshCcw, MapPin, ThumbsUp, Users, Power, UserX, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LiveUserMap } from '../components/Admin/LiveUserMap';
 import jsPDF from 'jspdf';
@@ -91,7 +91,9 @@ export const AdminPage = () => {
             const { data, error } = await supabase.rpc('get_all_time_entries');
             if (error) throw error;
 
-            setHistory(data || []);
+            // Filter out entries from admins to keep the history view for employees only
+            const filteredHistory = (data || []).filter((entry: HistoryEntry) => entry.employee_role !== 'admin');
+            setHistory(filteredHistory);
         } finally {
             if (view === 'history') setLoading(false);
         }

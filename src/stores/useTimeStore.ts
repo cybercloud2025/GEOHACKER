@@ -89,8 +89,8 @@ export const useTimeStore = create<TimeState>()(
                         currentShiftId: shiftId,
                         startTime: new Date().toISOString()
                     });
-                } catch (e: any) {
-                    const errorMsg = e.message || 'Error de conexión con la base de datos';
+                } catch (e: unknown) {
+                    const errorMsg = e instanceof Error ? e.message : 'Error de conexión con la base de datos';
                     console.error('ClockIn Error:', e);
                     throw new Error(`Error al fichar: ${errorMsg}. Revisa tu conexión o el estado de RLS.`);
                 }
@@ -150,9 +150,10 @@ export const useTimeStore = create<TimeState>()(
                         .eq('id', currentShiftId);
 
                     set({ status: 'break', currentBreakId: data.id });
-                } catch (e: any) {
+                } catch (e: unknown) {
                     console.error('Error starting break:', e);
-                    throw new Error(e.message || 'Error al iniciar pausa');
+                    const errorMsg = e instanceof Error ? e.message : 'Error al iniciar pausa';
+                    throw new Error(errorMsg);
                 }
             },
 
@@ -183,9 +184,10 @@ export const useTimeStore = create<TimeState>()(
                         .eq('id', currentShiftId);
 
                     set({ status: 'active', currentBreakId: null });
-                } catch (e: any) {
+                } catch (e: unknown) {
                     console.error('Error ending break:', e);
-                    throw new Error(e.message || 'Error al finalizar pausa');
+                    const errorMsg = e instanceof Error ? e.message : 'Error al finalizar pausa';
+                    throw new Error(errorMsg);
                 }
             }
         }),

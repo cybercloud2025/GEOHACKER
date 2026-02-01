@@ -1,5 +1,5 @@
 export const playAlarm = (durationMs: number = 3000) => {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioContext = window.AudioContext || (window as unknown as any).webkitAudioContext;
     if (!AudioContext) return;
 
     const ctx = new AudioContext();
@@ -35,7 +35,7 @@ export const playAlarm = (durationMs: number = 3000) => {
 };
 
 export const playTypingSound = () => {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioContext = window.AudioContext || (window as unknown as any).webkitAudioContext;
     if (!AudioContext) return;
 
     const ctx = new AudioContext();

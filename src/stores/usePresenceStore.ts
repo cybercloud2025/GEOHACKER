@@ -7,6 +7,11 @@ interface PresenceState {
     initPresence: () => () => void; // Returns cleanup function
 }
 
+interface PresenceValue {
+    user_id: string;
+    online_at: string;
+}
+
 export const usePresenceStore = create<PresenceState>((set) => ({
     onlineUserIds: new Set(),
 
@@ -21,8 +26,8 @@ export const usePresenceStore = create<PresenceState>((set) => ({
                 const state = channel.presenceState();
                 const userIds = new Set<string>();
 
-                Object.values(state).forEach((presences: any) => {
-                    presences.forEach((presence: any) => {
+                Object.values(state).forEach((presences) => {
+                    (presences as unknown as PresenceValue[]).forEach((presence) => {
                         if (presence.user_id) {
                             userIds.add(presence.user_id);
                         }
