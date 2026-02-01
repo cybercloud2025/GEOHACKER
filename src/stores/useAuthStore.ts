@@ -26,7 +26,7 @@ interface AuthState {
     register: (firstName: string, lastName: string, pin: string, email?: string | null, avatarUrl?: string | null, inviteCode?: string | null) => Promise<{ success: boolean; error?: string }>;
     createAdmin: (firstName: string, lastName: string, pin: string, email?: string | null, avatarUrl?: string | null, companyName?: string | null, fiscalId?: string | null) => Promise<{ success: boolean; error?: string }>;
     createUser: (firstName: string, lastName: string, pin: string, inviteCode: string, email?: string | null, avatarUrl?: string | null) => Promise<{ success: boolean; error?: string }>;
-    updateEmployee: (id: string, data: Partial<{ first_name: string; last_name: string; employee_email: string | null; pin_text: string; role: string; verified: boolean; admin_id: string; invite_code: string }>) => Promise<{ success: boolean; error?: string }>;
+    updateEmployee: (id: string, data: Partial<{ first_name: string; last_name: string; employee_email: string | null; pin_text: string; role: string; verified: boolean; admin_id: string; invite_code: string; company_name: string | null; fiscal_id: string | null }>) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
     setEmployee: (employee: Employee | null) => void;
     originalAdmin: Employee | null; // For impersonation

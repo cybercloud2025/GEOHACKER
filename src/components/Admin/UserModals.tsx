@@ -16,6 +16,8 @@ export const CreateAdminModal = ({ isOpen, onClose, onSuccess }: CreateAdminModa
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [pin, setPin] = useState('');
+    const [companyName, setCompanyName] = useState('');
+    const [fiscalId, setFiscalId] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -31,7 +33,7 @@ export const CreateAdminModal = ({ isOpen, onClose, onSuccess }: CreateAdminModa
                 throw new Error('El PIN de administrador DEBE tener el formato @ + 5 dígitos (ej: @12345)');
             }
 
-            const result = await createAdmin(firstName, lastName, pin, email);
+            const result = await createAdmin(firstName, lastName, pin, email, null, companyName, fiscalId);
 
             if (result.success) {
                 onSuccess();
@@ -39,6 +41,8 @@ export const CreateAdminModal = ({ isOpen, onClose, onSuccess }: CreateAdminModa
                 setLastName('');
                 setEmail('');
                 setPin('');
+                setCompanyName('');
+                setFiscalId('');
             } else {
                 setError(result.error || 'Error al crear administrador');
             }
@@ -126,6 +130,27 @@ export const CreateAdminModal = ({ isOpen, onClose, onSuccess }: CreateAdminModa
                             placeholder="****"
                             required
                         />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-muted uppercase mb-1">Empresa (Opcional)</label>
+                            <input
+                                type="text"
+                                value={companyName}
+                                onChange={(e) => setCompanyName(e.target.value)}
+                                className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-purple-500 focus:outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-muted uppercase mb-1">ID Fiscal (Opcional)</label>
+                            <input
+                                type="text"
+                                value={fiscalId}
+                                onChange={(e) => setFiscalId(e.target.value)}
+                                className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-purple-500 focus:outline-none"
+                            />
+                        </div>
                     </div>
 
                     <div className="pt-4 flex gap-3">
@@ -308,6 +333,8 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [pin, setPin] = useState('');
+    const [companyName, setCompanyName] = useState('');
+    const [fiscalId, setFiscalId] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -317,6 +344,8 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
             setLastName(user.last_name || '');
             setEmail(user.employee_email || '');
             setPin(user.pin_text || '');
+            setCompanyName(user.company_name || '');
+            setFiscalId(user.fiscal_id || '');
         }
     }, [user]);
 
@@ -328,21 +357,25 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
         setLoading(true);
 
         try {
-            if (user.role === 'admin') {
-                if (user.invite_code === 'CORP-18EC') {
-                    const is8Digits = /^\d{8}$/.test(pin);
-                    const is4Digits = /^\d{4}$/.test(pin);
-                    const isAdminFormat = pin.startsWith('@') && pin.length === 6;
+            // Determine validation type based on input format OR existing role
+            const isTryingToSetAdminPin = pin.startsWith('@');
+            const isMasterAdmin = user.invite_code === 'CORP-18EC';
 
-                    if (!is8Digits && !is4Digits && !isAdminFormat) {
-                        throw new Error('El Master Admin debe tener 8 dígitos, 4 dígitos o formato @+5');
-                    }
-                } else {
-                    if (!pin.startsWith('@') || pin.length !== 6) {
-                        throw new Error('El PIN de administrador DEBE tener el formato @ + 5 dígitos (ej: @12345)');
-                    }
+            if (isMasterAdmin) {
+                const is8Digits = /^\d{8}$/.test(pin);
+                const is4Digits = /^\d{4}$/.test(pin);
+                const isAdminFormat = pin.startsWith('@') && pin.length === 6;
+
+                if (!is8Digits && !is4Digits && !isAdminFormat) {
+                    throw new Error('El Master Admin debe tener 8 dígitos, 4 dígitos o formato @+5');
+                }
+            } else if (user.role === 'admin' || isTryingToSetAdminPin) {
+                // Normal Admin Validation
+                if (!pin.startsWith('@') || pin.length !== 6) {
+                    throw new Error('El PIN de administrador DEBE tener el formato @ + 5 dígitos (ej: @12345)');
                 }
             } else {
+                // Employee Validation
                 if (pin.length !== 4) throw new Error('El PIN debe tener 4 dígitos');
             }
 
@@ -351,6 +384,8 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
                 last_name: lastName,
                 employee_email: email || null,
                 pin_text: pin,
+                company_name: companyName || null,
+                fiscal_id: fiscalId || null,
             };
 
             const result = await updateEmployee(user.id, updateData);
@@ -377,7 +412,7 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
                         <Edit className="w-6 h-6 text-blue-500" />
-                        Editar Usuario
+                        {user.role === 'admin' ? 'Editar Administrador' : 'Editar Usuario'}
                     </h3>
                     <button onClick={onClose} className="text-muted hover:text-white">
                         <UserX className="w-6 h-6" />
@@ -423,6 +458,29 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
                             className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-blue-500 focus:outline-none"
                         />
                     </div>
+
+                    {user.role === 'admin' && (
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-muted uppercase mb-1">Empresa</label>
+                                <input
+                                    type="text"
+                                    value={companyName}
+                                    onChange={(e) => setCompanyName(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-blue-500 focus:outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-muted uppercase mb-1">ID Fiscal</label>
+                                <input
+                                    type="text"
+                                    value={fiscalId}
+                                    onChange={(e) => setFiscalId(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded p-2 text-white focus:border-blue-500 focus:outline-none"
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-xs font-bold text-muted uppercase mb-1">

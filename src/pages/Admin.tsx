@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { Button } from '../components/ui/Button';
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
-import { Users, Trash2, UserX, MapPin, Shield, FileText, FileDown, Power, UserPlus, Edit, LogIn, ThumbsUp, RefreshCcw } from 'lucide-react';
+import { Users, Trash2, UserX, MapPin, Shield, FileText, FileDown, Power, UserPlus, Edit, LogIn, ThumbsUp, RefreshCcw, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LiveUserMap } from '../components/Admin/LiveUserMap';
 import jsPDF from 'jspdf';
@@ -16,6 +16,7 @@ import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { AssignAdminModal } from '../components/Admin/AssignAdminModal';
 import { AdminTable } from '../components/Admin/AdminTable';
 import { CreateAdminModal, CreateUserModal, EditUserModal } from '../components/Admin/UserModals';
+import { SearchAdminModal } from '../components/Admin/SearchAdminModal';
 
 interface LocationData {
     lat: number;
@@ -47,6 +48,8 @@ interface AdminUser {
     pin_text?: string | null;
     role: string;
     admin_id?: string;
+    company_name?: string | null;
+    fiscal_id?: string | null;
 }
 
 
@@ -76,6 +79,7 @@ export const AdminPage = () => {
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [userToAssign, setUserToAssign] = useState<AdminUser | null>(null);
     const [activeUserIds, setActiveUserIds] = useState<Set<string>>(new Set());
+    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
 
     const fetchHistory = useCallback(async () => {
@@ -1110,6 +1114,14 @@ export const AdminPage = () => {
                                         <FileDown className="w-4 h-4" />
                                         PDF Admin
                                     </Button>
+                                    <Button
+                                        onClick={() => setIsSearchModalOpen(true)}
+                                        variant="secondary"
+                                        className="h-9 px-4 text-xs flex items-center gap-2 border-cyan-500/20 hover:bg-cyan-500/10 text-cyan-400"
+                                    >
+                                        <Search className="w-4 h-4" />
+                                        Buscar Info
+                                    </Button>
                                 </div>
                             </div>
                             <div className="overflow-x-auto">
@@ -1303,6 +1315,12 @@ export const AdminPage = () => {
                 onClose={() => setIsAssignModalOpen(false)}
                 onAssign={handleConfirmAssign}
                 userName={userToAssign ? `${userToAssign.first_name} ${userToAssign.last_name}` : ''}
+            />
+
+            <SearchAdminModal
+                isOpen={isSearchModalOpen}
+                onClose={() => setIsSearchModalOpen(false)}
+                admins={admins}
             />
         </div>
     );
