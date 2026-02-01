@@ -1,8 +1,6 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, MapPin, Calendar, Clock, Activity, Shield, Mail, Hash, Smartphone } from 'lucide-react';
+import { X, User, Clock, Activity, Shield, Mail, Hash, Smartphone } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 
 interface UserDetailsModalProps {
     isOpen: boolean;
