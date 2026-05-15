@@ -18,6 +18,7 @@ import { AdminTable } from '../components/Admin/AdminTable';
 import { CreateAdminModal, CreateUserModal, EditUserModal } from '../components/Admin/UserModals';
 
 import { UserDetailsModal } from '../components/Admin/UserDetailsModal';
+import { TwoFactorSetupModal } from '../components/Admin/TwoFactorSetupModal';
 
 
 interface LocationData {
@@ -84,6 +85,7 @@ export const AdminPage = () => {
 
     const [userDetailsOpen, setUserDetailsOpen] = useState(false);
     const [selectedUserForDetails, setSelectedUserForDetails] = useState<any>(null);
+    const [is2faSetupOpen, setIs2faSetupOpen] = useState(false);
 
 
     const fetchHistory = useCallback(async () => {
@@ -102,22 +104,13 @@ export const AdminPage = () => {
     const fetchUsers = useCallback(async (shouldSetLoading = true) => {
         if (shouldSetLoading) setLoading(true);
         try {
-            let query = supabase
-                .from('employees')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (isMasterAdmin) {
-                // Modified: Exclude admins from the general user list
-                query = query.neq('role', 'admin').or(`admin_id.eq.${employee?.id},verified.eq.false`);
-            } else {
-                query = query.neq('role', 'admin').eq('admin_id', employee?.id);
-            }
-
-            const { data, error } = await query;
-
+            const { data, error } = await supabase
+                .rpc('get_users_for_admin', {
+                    p_admin_id: employee?.id || null,
+                    p_is_master: isMasterAdmin
+                });
             if (error) throw error;
-            setUsers((data || []).filter((user: any) => user.role !== 'admin'));
+            setUsers((data as AdminUser[]) || []);
         } finally {
             if (shouldSetLoading) setLoading(false);
         }
@@ -125,13 +118,9 @@ export const AdminPage = () => {
 
     const fetchActiveUsers = useCallback(async () => {
         try {
-            const { data, error } = await supabase
-                .from('time_entries')
-                .select('employee_id')
-                .eq('status', 'active');
-
+            const { data, error } = await supabase.rpc('get_active_employee_ids');
             if (error) throw error;
-            const activeIds = new Set<string>((data || []).map(item => item.employee_id));
+            const activeIds = new Set<string>((data || []).map((item: { employee_id: string }) => item.employee_id));
             setActiveUserIds(activeIds);
         } catch (err) {
             console.error('Error fetching active users:', err);
@@ -141,18 +130,9 @@ export const AdminPage = () => {
     const fetchAdmins = useCallback(async () => {
         setLoading(true);
         try {
-            let query = supabase
-                .from('employees')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            // Admins: role is admin OR has admin PIN prefix
-            query = query.or(`role.eq.admin,pin_text.ilike.@%`);
-
-            const { data, error } = await query;
-
+            const { data, error } = await supabase.rpc('get_admins_list');
             if (error) throw error;
-            setAdmins(data || []);
+            setAdmins((data as AdminUser[]) || []);
         } finally {
             setLoading(false);
         }
@@ -194,13 +174,14 @@ export const AdminPage = () => {
         try {
             setLoading(true);
             const { error } = await supabase
-                .from('employees')
-                .update({ role: newRole })
-                .eq('id', userId);
+                .rpc('update_user_role', {
+                    p_user_id: userId,
+                    p_new_role: newRole,
+                    p_actor_id: employee?.id || null
+                });
 
             if (error) throw error;
 
-            // Refresh users list
             await fetchUsers(true);
         } catch (err) {
             console.error('Error updating role:', err);
@@ -298,13 +279,13 @@ export const AdminPage = () => {
         try {
             setLoading(true);
             const { error } = await supabase
-                .from('employees')
-                .delete()
-                .eq('id', userId);
+                .rpc('delete_employee_safe', {
+                    p_user_id: userId,
+                    p_actor_id: employee?.id || null
+                });
 
             if (error) throw error;
 
-            // Refresh users list
             await fetchUsers(true);
 
             // If we are in history view, refresh that too since records might have been deleted
@@ -798,6 +779,15 @@ export const AdminPage = () => {
                             className="h-11 border-white/10 text-muted hover:text-white"
                         >
                             Ver Fichajes
+                        </Button>
+                        <Button
+                            onClick={() => setIs2faSetupOpen(true)}
+                            variant="secondary"
+                            className="hover:bg-cyan-500/10 hover:text-cyan-400 border-cyan-500/30 h-11"
+                            title="Activar autenticación de dos factores"
+                        >
+                            <Shield className="w-4 h-4 mr-2" />
+                            2FA
                         </Button>
                         <Button
                             onClick={() => {
@@ -1361,6 +1351,11 @@ export const AdminPage = () => {
                 }}
                 user={selectedUserForDetails}
                 history={history}
+            />
+
+            <TwoFactorSetupModal
+                isOpen={is2faSetupOpen}
+                onClose={() => setIs2faSetupOpen(false)}
             />
         </div >
     );

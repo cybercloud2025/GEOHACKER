@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Geohacker — Presentación</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Courier New', monospace;
+    background: #000;
+    color: #00ff9c;
+    overflow: hidden;
+    height: 100vh;
+  }
+  #stage {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  #matrix {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0; opacity: 0.08;
+    pointer-events: none;
+  }
+  .slide {
+    flex: 1;
+    padding: 60px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  h1 {
+    color: #60A5FA;
+    font-size: 56px;
+    margin-bottom: 28px;
+    text-shadow: 0 0 20px rgba(96,165,250,0.6);
+    border-bottom: 2px solid #60A5FA;
+    padding-bottom: 18px;
+    letter-spacing: 2px;
+  }
+  h2 {
+    color: #a855f7;
+    font-size: 24px;
+    margin-top: 24px;
+    margin-bottom: 14px;
+    letter-spacing: 1px;
+  }
+  ul { list-style: none; }
+  li {
+    padding: 10px 0 10px 28px;
+    font-size: 20px;
+    color: #e2e8f0;
+    position: relative;
+  }
+  li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: #00ff9c;
+    text-shadow: 0 0 8px rgba(0,255,156,0.8);
+  }
+  .hero {
+    text-align: center;
+  }
+  .hero h1 {
+    border: none;
+    font-size: 96px;
+    letter-spacing: 12px;
+  }
+  .hero p {
+    font-size: 28px;
+    color: #94a3b8;
+    margin-top: 30px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border: 1px solid #00ff9c;
+    border-radius: 4px;
+    margin: 4px;
+    font-size: 14px;
+    color: #00ff9c;
+  }
+  #controls {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.95);
+    border-top: 1px solid #00ff9c;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+  }
+  #controls button {
+    background: transparent;
+    border: 1px solid #00ff9c;
+    color: #00ff9c;
+    padding: 8px 18px;
+    margin: 0 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+  }
+  #controls button:hover {
+    background: #00ff9c;
+    color: #000;
+    box-shadow: 0 0 16px rgba(0,255,156,0.5);
+  }
+  #controls button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  #counter {
+    font-size: 14px;
+    color: #94a3b8;
+    letter-spacing: 1px;
+  }
+  #voiceSelect {
+    background: #0a0a0a;
+    color: #00ff9c;
+    border: 1px solid #00ff9c;
+    padding: 6px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+  }
+  .rate-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: 12px;
+  }
+  input[type=range] {
+    accent-color: #00ff9c;
+  }
+  .panel {
+    background: rgba(10, 10, 10, 0.85);
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 24px 32px;
+    margin: 12px 0;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .cell {
+    background: rgba(96,165,250,0.05);
+    border-left: 3px solid #60A5FA;
+    padding: 16px 20px;
+  }
+  .cell h3 {
+    color: #60A5FA;
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  .cell p {
+    color: #cbd5e1;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    border: 1px solid #60A5FA;
+    background: rgba(0,0,0,0.7);
+    font-size: 12px;
+    color: #60A5FA;
+    border-radius: 4px;
+    z-index: 100;
+  }
+  .speaking {
+    animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,156,0.7); }
+    50% { box-shadow: 0 0 0 12px rgba(0,255,156,0); }
+  }
+</style>
+</head>
+<body>
+<canvas id="matrix"></canvas>
+<div class="status" id="status">⏸ DETENIDO</div>
+<div id="stage"></div>
+
+<div id="controls">
+  <div>
+    <button id="btnPrev">◀ ANTERIOR</button>
+    <button id="btnPlay">▶ REPRODUCIR</button>
+    <button id="btnPause">⏸ PAUSA</button>
+    <button id="btnNext">SIGUIENTE ▶</button>
+    <button id="btnAuto">⟳ AUTO</button>
+    <button id="btnRestart">⏮ INICIO</button>
+  </div>
+  <div style="display:flex;gap:16px;align-items:center;">
+    <div class="rate-control">
+      <span>VEL:</span>
+      <input type="range" id="rate" min="0.7" max="1.4" step="0.05" value="1.0" style="width:80px;">
+      <span id="rateLabel">1.0x</span>
+    </div>
+    <select id="voiceSelect"></select>
+    <span id="counter">0 / 0</span>
+  </div>
+</div>
+
+<script>
+const slides = [
+  {
+    layout: 'hero',
+    title: 'GEOHACKER',
+    subtitle: 'Sistema de Control Horario con Geolocalización',
+    narration: 'Bienvenido a Geohacker. Una aplicación de control horario para empresas, con geolocalización en tiempo real, soporte multi-empresa y panel maestro de administración. A lo largo de esta presentación recorreremos todas sus pantallas, flujos y características clave.'
+  },
+  {
+    title: '¿QUÉ ES GEOHACKER?',
+    bullets: [
+      'Plataforma de fichaje con captura de GPS en cada acción',
+      'Soporta múltiples empresas en una sola instalación',
+      'Empleados fichan entrada, salida y descansos desde móvil o web',
+      'Administradores ven a su equipo en un mapa en vivo',
+      'Administrador Maestro supervisa toda la red de empresas'
+    ],
+    narration: 'Geohacker es una plataforma de fichaje moderna. Permite que los empleados registren su entrada, salida y descansos, capturando automáticamente su geolocalización. Cada empresa tiene su propio administrador, y existe un Administrador Maestro que supervisa toda la red. Es una solución multi-empresa lista para escalar.'
+  },
+  {
+    title: 'STACK TECNOLÓGICO',
+    bullets: [
+      'Frontend: React 18 + TypeScript + Vite',
+      'Estilos: Tailwind CSS con tema cyberpunk',
+      'Estado: Zustand con persistencia local',
+      'Backend: Supabase (Postgres + Auth + Realtime)',
+      'Mapas: Google Maps API',
+      'PDF: jsPDF + autoTable para reportes',
+      'Email: EmailJS para bienvenida y verificación'
+    ],
+    narration: 'La aplicación está construida sobre React con TypeScript y empaquetada con Vite. El backend es Supabase, que aporta base de datos Postgres, autenticación y suscripciones en tiempo real. Los mapas usan la API de Google. El estado se gestiona con Zustand y los reportes se generan con jsPDF directamente en el navegador.'
+  },
+  {
+    title: 'PANTALLA DE ACCESO',
+    bullets: [
+      'Autenticación por PIN, sin contraseñas tradicionales',
+      'Empleado: PIN de 4 dígitos',
+      'Administrador: PIN de 6 dígitos o formato @ más 5 dígitos',
+      'Maestro: PIN secreto de 8 dígitos — 01121973',
+      'Interfaz hacker con efecto Matrix y avatar de usuario',
+      'Registro integrado para nuevos usuarios con código de invitación'
+    ],
+    narration: 'El acceso al sistema es por PIN, sin contraseñas tradicionales. Los empleados usan PIN de cuatro dígitos, los administradores de seis dígitos o con prefijo arroba, y el Maestro tiene un PIN especial de ocho dígitos. La pantalla de login también incluye el flujo de registro, donde el usuario puede crearse una cuenta usando el código de invitación de su empresa.'
+  },
+  {
+    title: 'PANEL DEL EMPLEADO — TRACKER',
+    bullets: [
+      'Mapa de Google en tiempo real con la posición actual',
+      'Botón FICHAR ENTRADA captura GPS + timestamp',
+      'Botón FICHAR SALIDA cierra el turno con ubicación final',
+      'Gestión de descansos con motivo opcional',
+      'Indicador de estado: activo, en descanso o inactivo',
+      'Refresco manual de localización y precisión',
+      'Cierre de sesión automático tras inactividad'
+    ],
+    narration: 'Cuando un empleado entra a la aplicación, ve su panel personal. Allí aparece un mapa con su posición actual y los botones para fichar entrada y salida. Cada acción captura latitud, longitud, precisión y marca de tiempo, todo enviado a Supabase. El empleado también puede iniciar y finalizar descansos, indicando el motivo si lo desea.'
+  },
+  {
+    title: 'GESTIÓN DE DESCANSOS',
+    bullets: [
+      'Pausa el turno sin cerrar el fichaje',
+      'Captura motivo del descanso',
+      'Suma duración total de descansos por turno',
+      'Cuenta el número de pausas',
+      'Aparece en el historial del administrador'
+    ],
+    narration: 'Geohacker maneja descansos como una primera clase. Cuando un empleado pulsa descanso, el turno se pausa pero no se cierra. Se registra el motivo, la duración y la cantidad de descansos por jornada. Esta información aparece después en el historial visible al administrador.'
+  },
+  {
+    title: 'PANEL DEL ADMINISTRADOR',
+    bullets: [
+      'Cuatro pestañas: Historial, Usuarios, Mapa en Vivo, Administradores',
+      'Vista global de todos los turnos de sus empleados',
+      'Filtros por fecha, empleado y estado',
+      'Detalle geográfico de cada turno con ruta',
+      'Acciones: editar, eliminar, asignar, validar y suplantar'
+    ],
+    narration: 'El administrador accede a un panel con cuatro pestañas. En Historial ve todos los turnos de su equipo. En Usuarios gestiona empleados. En Mapa en Vivo observa quién está fichado en este momento. Y en Administradores, si es Maestro, puede crear y validar a otros administradores.'
+  },
+  {
+    title: 'MAPA EN VIVO',
+    bullets: [
+      'Presencia en tiempo real vía Supabase Realtime',
+      'Marcadores por cada empleado activo',
+      'Click sobre un usuario abre su detalle',
+      'Iconos diferenciados: activo, en pausa, sin ubicación',
+      'Trazado de ruta del turno seleccionado'
+    ],
+    narration: 'La pestaña Mapa en Vivo es una de las características estrella. Usando las suscripciones en tiempo real de Supabase, muestra todos los empleados conectados como marcadores sobre un mapa de Google. El administrador puede pinchar en cualquiera para ver su ruta del turno actual y el detalle de su fichaje.'
+  },
+  {
+    title: 'GESTIÓN DE USUARIOS',
+    bullets: [
+      'Crear empleados con PIN, nombre, email y avatar',
+      'Editar datos en cualquier momento',
+      'Eliminación segura con reasignación de admin_id',
+      'Validación pendiente para usuarios nuevos',
+      'Ascender un usuario a administrador o degradarlo',
+      'Suplantación temporal de un empleado para diagnóstico'
+    ],
+    narration: 'En la pestaña Usuarios el administrador gestiona toda su plantilla. Puede crear empleados nuevos, editarlos, eliminarlos o validarlos. También puede ascender un empleado a administrador o degradar a un administrador a empleado. Una función especial llamada Suplantar permite al admin entrar como si fuera el empleado, útil para diagnóstico.'
+  },
+  {
+    title: 'EXPORTACIÓN A PDF',
+    bullets: [
+      'Generación con jsPDF directamente en el navegador',
+      'Tabla con nombre, rol, horarios, ubicaciones y descansos',
+      'Vista previa antes de descargar',
+      'No requiere servidor — todo cliente',
+      'Listo para imprimir o adjuntar a nóminas'
+    ],
+    narration: 'Cuando el administrador necesita un reporte, pulsa el botón de exportar. Geohacker genera un PDF profesional con la librería jsPDF, incluyendo todos los datos del turno: empleado, horarios, ubicación y descansos. El PDF se genera completamente en el cliente, sin pasar por servidor, y se ofrece una vista previa antes de descargar.'
+  },
+  {
+    title: 'ARQUITECTURA MULTI-EMPRESA',
+    bullets: [
+      'Cada empresa tiene un código de invitación único — invite_code',
+      'Los empleados se vinculan a un administrador vía admin_id',
+      'Aislamiento de datos por empresa mediante Row Level Security',
+      'Un administrador solo ve a sus propios empleados',
+      'El Administrador Maestro ve absolutamente todo'
+    ],
+    narration: 'Geohacker soporta múltiples empresas en la misma instalación. Cada empresa se identifica por un código de invitación único, y cada empleado queda vinculado a su administrador. Las políticas de seguridad a nivel de fila garantizan que un administrador solo vea a sus propios empleados, mientras que el Administrador Maestro tiene visibilidad total sobre toda la red.'
+  },
+  {
+    title: 'ADMINISTRADOR MAESTRO',
+    bullets: [
+      'Identificado por código CORP-18EC',
+      'Único usuario con privilegios totales del sistema',
+      'Valida o rechaza nuevos administradores',
+      'Activa o desactiva el registro público',
+      'Puede crear, suplantar y eliminar cualquier usuario',
+      'PIN actual: 01121973 — usuario JOSE PC'
+    ],
+    narration: 'En la cumbre de la jerarquía está el Administrador Maestro, identificado por el código especial CORP guion 18EC. Es el único usuario con privilegios completos. Valida a los nuevos administradores, controla el registro público y puede actuar sobre cualquier cuenta del sistema. Hoy ese rol corresponde a JOSE PC, con PIN cero uno uno dos uno nueve siete tres.'
+  },
+  {
+    title: 'ESTRUCTURA DEL CÓDIGO',
+    bullets: [
+      'src/pages — Login, Tracker, Admin, AdminRegister, AdminMap',
+      'src/stores — useAuthStore, useTimeStore, usePresenceStore',
+      'src/components — UI reutilizable, modales, mapas',
+      'src/lib — cliente Supabase, EmailJS',
+      'Scripts SQL en raíz para migraciones y reparaciones',
+      'Documentación: README, manuales técnico y visual'
+    ],
+    narration: 'A nivel de código, la aplicación se organiza en páginas, stores de Zustand, componentes reutilizables y librerías auxiliares. En la raíz del proyecto hay numerosos scripts SQL para migraciones y reparaciones de la base de datos. La documentación incluye un manual técnico y un manual visual en PDF.'
+  },
+  {
+    title: 'FLUJO COMPLETO DEL EMPLEADO',
+    bullets: [
+      '1. Registro con código de invitación de su empresa',
+      '2. Login con PIN de 4 dígitos',
+      '3. Pantalla Tracker se abre automáticamente',
+      '4. Fichaje entrada — GPS capturado',
+      '5. Trabajo, posibles descansos',
+      '6. Fichaje salida — turno cerrado',
+      '7. Datos visibles inmediatamente para su administrador'
+    ],
+    narration: 'Resumamos el viaje del empleado. Se registra con el código de su empresa, recibe su PIN, accede al Tracker y ficha su entrada con captura automática de geolocalización. Durante su jornada puede iniciar y finalizar descansos, y al terminar cierra su turno. Toda la información queda disponible al instante en el panel de su administrador.'
+  },
+  {
+    title: 'ESTADO ACTUAL DE LA BASE DE DATOS',
+    bullets: [
+      '9 administradores activos en total',
+      '1 Administrador Maestro — JOSE PC',
+      '9 de 9 administradores verificados',
+      'PIN maestro 01121973 funciona limpio sin duplicados',
+      'Sistema listo para producción tras la limpieza reciente'
+    ],
+    narration: 'Tras la limpieza realizada en esta sesión, la base de datos cuenta con nueve administradores, uno de ellos Maestro, y todos verificados. El PIN maestro responde a un único usuario, sin conflictos. El sistema está listo para usarse en producción.'
+  },
+  {
+    layout: 'hero',
+    title: 'FIN DE LA DEMO',
+    subtitle: 'Geohacker — Control Horario Inteligente',
+    narration: 'Hasta aquí el recorrido por Geohacker. Una plataforma completa de control horario con geolocalización, multi-empresa, panel maestro y exportación a PDF. Lista para escalar a múltiples organizaciones y miles de empleados. Gracias por acompañar esta presentación.'
+  }
+];
+
+const stage = document.getElementById('stage');
+const counter = document.getElementById('counter');
+const statusEl = document.getElementById('status');
+const voiceSel = document.getElementById('voiceSelect');
+const rateInput = document.getElementById('rate');
+const rateLabel = document.getElementById('rateLabel');
+let current = 0;
+let autoMode = false;
+let isSpeaking = false;
+
+function renderSlide(i) {
+  const s = slides[i];
+  let html = '';
+  if (s.layout === 'hero') {
+    html = `<div class="slide hero">
+      <h1>${s.title}</h1>
+      <p>${s.subtitle}</p>
+    </div>`;
+  } else {
+    html = `<div class="slide">
+      <h1>${s.title}</h1>
+      <ul>${s.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
+    </div>`;
+  }
+  stage.innerHTML = html;
+  counter.textContent = `${i+1} / ${slides.length}`;
+}
+
+let voices = [];
+function loadVoices() {
+  voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('es'));
+  voiceSel.innerHTML = '';
+  voices.forEach((v, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = `${v.name} (${v.lang})`;
+    voiceSel.appendChild(opt);
+  });
+  if (voices.length === 0) {
+    const opt = document.createElement('option');
+    opt.textContent = 'Voz por defecto';
+    voiceSel.appendChild(opt);
+  }
+}
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+function speak(text) {
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'es-ES';
+  u.rate = parseFloat(rateInput.value);
+  u.pitch = 1.0;
+  if (voices.length > 0) {
+    u.voice = voices[parseInt(voiceSel.value) || 0];
+  }
+  u.onstart = () => {
+    isSpeaking = true;
+    statusEl.textContent = '▶ NARRANDO';
+    statusEl.classList.add('speaking');
+  };
+  u.onend = () => {
+    isSpeaking = false;
+    statusEl.classList.remove('speaking');
+    statusEl.textContent = '⏸ DETENIDO';
+    if (autoMode && current < slides.length - 1) {
+      setTimeout(() => {
+        current++;
+        renderSlide(current);
+        speak(slides[current].narration);
+      }, 800);
+    } else if (autoMode && current === slides.length - 1) {
+      autoMode = false;
+      statusEl.textContent = '✓ FIN';
+    }
+  };
+  speechSynthesis.speak(u);
+}
+
+document.getElementById('btnPrev').onclick = () => {
+  if (current > 0) {
+    current--;
+    renderSlide(current);
+    speak(slides[current].narration);
+  }
+};
+document.getElementById('btnNext').onclick = () => {
+  if (current < slides.length - 1) {
+    current++;
+    renderSlide(current);
+    speak(slides[current].narration);
+  }
+};
+document.getElementById('btnPlay').onclick = () => {
+  speak(slides[current].narration);
+};
+document.getElementById('btnPause').onclick = () => {
+  speechSynthesis.cancel();
+  autoMode = false;
+  statusEl.textContent = '⏸ PAUSADO';
+  statusEl.classList.remove('speaking');
+};
+document.getElementById('btnAuto').onclick = () => {
+  autoMode = true;
+  speak(slides[current].narration);
+};
+document.getElementById('btnRestart').onclick = () => {
+  speechSynthesis.cancel();
+  current = 0;
+  renderSlide(current);
+  autoMode = false;
+  statusEl.textContent = '⏸ DETENIDO';
+};
+rateInput.oninput = () => {
+  rateLabel.textContent = parseFloat(rateInput.value).toFixed(2) + 'x';
+};
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') document.getElementById('btnNext').click();
+  if (e.key === 'ArrowLeft') document.getElementById('btnPrev').click();
+  if (e.key === ' ') { e.preventDefault(); document.getElementById('btnPlay').click(); }
+});
+
+const cvs = document.getElementById('matrix');
+const ctx = cvs.getContext('2d');
+cvs.width = window.innerWidth;
+cvs.height = window.innerHeight;
+const chars = '0123456789ABCDEFハッカーGEOHACKER';
+const fontSize = 16;
+const cols = cvs.width / fontSize;
+const drops = Array(Math.floor(cols)).fill(1);
+function drawMatrix() {
+  ctx.fillStyle = 'rgba(0,0,0,0.05)';
+  ctx.fillRect(0, 0, cvs.width, cvs.height);
+  ctx.fillStyle = '#00ff9c';
+  ctx.font = fontSize + 'px monospace';
+  for (let i = 0; i < drops.length; i++) {
+    const txt = chars[Math.floor(Math.random() * chars.length)];
+    ctx.fillText(txt, i * fontSize, drops[i] * fontSize);
+    if (drops[i] * fontSize > cvs.height && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  }
+}
+setInterval(drawMatrix, 50);
+window.addEventListener('resize', () => {
+  cvs.width = window.innerWidth;
+  cvs.height = window.innerHeight;
+});
+
+renderSlide(0);
+</script>
+</body>
+</html>

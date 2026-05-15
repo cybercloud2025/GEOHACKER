@@ -34,14 +34,7 @@ export const AssignAdminModal = ({ isOpen, onClose, onAssign, userName }: Assign
     const fetchNormalAdmins = async () => {
         setLoading(true);
         try {
-            // Fetch admins that are NOT Master Admin (excluding CORP-18EC)
-            const { data, error } = await supabase
-                .from('employees')
-                .select('id, first_name, last_name, employee_email, invite_code')
-                .eq('role', 'admin')
-                .neq('invite_code', 'CORP-18EC') // Exclude Master Admin
-                .order('first_name', { ascending: true });
-
+            const { data, error } = await supabase.rpc('get_admins_for_assignment');
             if (error) throw error;
             setAdmins(data || []);
         } catch (err) {

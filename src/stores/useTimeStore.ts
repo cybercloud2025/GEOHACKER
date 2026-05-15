@@ -41,20 +41,12 @@ export const useTimeStore = create<TimeState>()(
                 const { employee } = useAuthStore.getState();
                 if (!employee) return;
 
-                // Check for active shift in DB
                 const { data } = await supabase
-                    .from('time_entries')
-                    .select('*')
-                    .eq('employee_id', employee.id)
-                    .is('end_time', null)
-                    .order('start_time', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
+                    .rpc('get_active_shift', { p_employee_id: employee.id });
 
                 if (data) {
-                    // Found active shift
                     set({
-                        status: data.status as 'active' | 'break', // Cast to match type
+                        status: data.status as 'active' | 'break',
                         currentShiftId: data.id,
                         startTime: data.start_time
                     });
@@ -134,22 +126,15 @@ export const useTimeStore = create<TimeState>()(
                 if (!currentShiftId) throw new Error("No hay turno activo para pausar");
 
                 try {
-                    // 1. Create break record
-                    const { data, error } = await supabase.from('breaks').insert({
-                        time_entry_id: currentShiftId,
-                        start_time: new Date().toISOString(),
-                        reason: reason
-                    }).select('id').single();
+                    const { data: breakId, error } = await supabase
+                        .rpc('start_break_safe', {
+                            p_time_entry_id: currentShiftId,
+                            p_reason: reason
+                        });
 
                     if (error) throw error;
 
-                    // 2. Update time entry status
-                    await supabase
-                        .from('time_entries')
-                        .update({ status: 'break' })
-                        .eq('id', currentShiftId);
-
-                    set({ status: 'break', currentBreakId: data.id });
+                    set({ status: 'break', currentBreakId: breakId });
                 } catch (e: unknown) {
                     console.error('Error starting break:', e);
                     const errorMsg = e instanceof Error ? e.message : 'Error al iniciar pausa';
@@ -162,26 +147,13 @@ export const useTimeStore = create<TimeState>()(
                 if (!currentShiftId) throw new Error("No active shift");
 
                 try {
-                    // 1. Close the break
-                    if (currentBreakId) {
-                        await supabase
-                            .from('breaks')
-                            .update({ end_time: new Date().toISOString() })
-                            .eq('id', currentBreakId);
-                    } else {
-                        // Fallback: Close latest open break for this shift
-                        await supabase
-                            .from('breaks')
-                            .update({ end_time: new Date().toISOString() })
-                            .eq('time_entry_id', currentShiftId)
-                            .is('end_time', null);
-                    }
+                    const { error } = await supabase
+                        .rpc('end_break_safe', {
+                            p_time_entry_id: currentShiftId,
+                            p_break_id: currentBreakId
+                        });
 
-                    // 2. Update time entry status
-                    await supabase
-                        .from('time_entries')
-                        .update({ status: 'active' })
-                        .eq('id', currentShiftId);
+                    if (error) throw error;
 
                     set({ status: 'active', currentBreakId: null });
                 } catch (e: unknown) {

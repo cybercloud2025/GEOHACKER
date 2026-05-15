@@ -14,6 +14,26 @@ dist
 dist-ssr
 *.local
 
+# Sensitive SQL scripts (PINs, master credentials, seed data)
+rotate_master_pin.sql
+definitivo_master_access.sql
+reparacion_maestra_v10.sql
+fix_master_admin.sql
+update_master_admin.sql
+seed_users.sql
+emergency_test_data.sql
+total_freedom_v8.sql
+ultimate_unblock.sql
+*master*.sql
+*credentials*.sql
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

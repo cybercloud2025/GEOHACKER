@@ -92,40 +92,32 @@ export const LiveUserMap = () => {
 
     const fetchLiveLocations = async () => {
         try {
-            // STEP 1: Get all active time entries directly (joining employee data)
-            const { data: activeShifts } = await supabase
-                .from('time_entries')
-                .select('id, employee_id, start_time, status, employees(first_name, last_name, role, avatar_url)')
-                .is('end_time', null);
+            const { data: activeShifts, error: shiftsError } = await supabase
+                .rpc('get_active_shifts_with_employees');
 
+            if (shiftsError) throw shiftsError;
             if (!activeShifts || activeShifts.length === 0) {
                 setLocations([]);
                 return;
             }
 
-            // Process active shifts
-            const filteredShifts = activeShifts;
-
-            if (filteredShifts.length === 0) {
-                setLocations([]);
-                return;
-            }
-
-            // STEP 2: For each active shift, fetch the latest known location
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const results = await Promise.all(filteredShifts.map(async (shift: any) => {
+            const results = await Promise.all(activeShifts.map(async (shift: {
+                shift_id: string;
+                employee_id: string;
+                start_time: string;
+                status: string;
+                first_name: string;
+                last_name: string;
+                role: string;
+                avatar_url: string | null;
+            }) => {
                 const { data: latestLoc } = await supabase
-                    .from('locations')
-                    .select('*')
-                    .eq('time_entry_id', shift.id)
-                    .order('timestamp', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
+                    .rpc('get_latest_location', { p_time_entry_id: shift.shift_id });
 
                 return {
                     employee_id: shift.employee_id,
-                    first_name: shift.employees.first_name,
-                    last_name: shift.employees.last_name,
+                    first_name: shift.first_name,
+                    last_name: shift.last_name,
                     latitude: latestLoc?.latitude || 0,
                     longitude: latestLoc?.longitude || 0,
                     accuracy: latestLoc?.accuracy || 0,
@@ -136,7 +128,7 @@ export const LiveUserMap = () => {
                     shift_start_time: shift.start_time,
                     status: shift.status,
                     has_gps: !!latestLoc,
-                    avatar_url: shift.employees.avatar_url
+                    avatar_url: shift.avatar_url
                 } as ActiveUserLocation;
             }));
 

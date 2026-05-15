@@ -1,7 +1,19 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
 import { sendWelcomeEmail, sendVerificationRequestEmail } from '../lib/email';
+
+const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
+
+async function getClientIp(): Promise<string | null> {
+    try {
+        const r = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
+        const j = await r.json();
+        return j?.ip || null;
+    } catch {
+        return null;
+    }
+}
 
 interface Employee {
     id: string;
@@ -15,14 +27,23 @@ interface Employee {
     verified?: boolean;
 }
 
+interface PendingTwoFactor {
+    employee: Employee;
+    secret: string;
+}
+
 interface AuthState {
     employee: Employee | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     isRegistrationEnabled: boolean;
+    sessionStartedAt: number | null;
+    pending2FA: PendingTwoFactor | null;
+    complete2FALogin: () => void;
+    cancel2FALogin: () => void;
     fetchSettings: () => Promise<void>;
     toggleRegistration: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
-    loginWithPin: (pin: string) => Promise<{ success: boolean; error?: string }>;
+    loginWithPin: (pin: string) => Promise<{ success: boolean; error?: string; requires2FA?: boolean }>;
     register: (firstName: string, lastName: string, pin: string, email?: string | null, avatarUrl?: string | null, inviteCode?: string | null) => Promise<{ success: boolean; error?: string }>;
     createAdmin: (firstName: string, lastName: string, pin: string, email?: string | null, avatarUrl?: string | null, companyName?: string | null, fiscalId?: string | null) => Promise<{ success: boolean; error?: string }>;
     createUser: (firstName: string, lastName: string, pin: string, inviteCode: string, email?: string | null, avatarUrl?: string | null) => Promise<{ success: boolean; error?: string }>;
@@ -41,17 +62,16 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: false,
             isRegistrationEnabled: true,
+            sessionStartedAt: null,
+            pending2FA: null,
 
             fetchSettings: async () => {
                 try {
                     const { data, error } = await supabase
-                        .from('system_settings')
-                        .select('value')
-                        .eq('key', 'registrations_enabled')
-                        .single();
+                        .rpc('get_system_setting', { p_key: 'registrations_enabled' });
                     if (error) throw error;
-                    if (data) {
-                        set({ isRegistrationEnabled: data.value as boolean });
+                    if (data !== null && data !== undefined) {
+                        set({ isRegistrationEnabled: data as boolean });
                     }
                 } catch (err) {
                     console.error('Error fetching settings:', err);
@@ -60,10 +80,13 @@ export const useAuthStore = create<AuthState>()(
 
             toggleRegistration: async (enabled: boolean) => {
                 try {
+                    const actor = get().employee?.id || null;
                     const { error } = await supabase
-                        .from('system_settings')
-                        .update({ value: enabled, updated_at: new Date().toISOString() })
-                        .eq('key', 'registrations_enabled');
+                        .rpc('set_system_setting', {
+                            p_key: 'registrations_enabled',
+                            p_value: enabled,
+                            p_actor_id: actor
+                        });
                     if (error) throw error;
                     set({ isRegistrationEnabled: enabled });
                     return { success: true };
@@ -76,22 +99,39 @@ export const useAuthStore = create<AuthState>()(
             loginWithPin: async (pin: string) => {
                 set({ isLoading: true });
                 try {
-                    // RPC call finds user with that PIN hash.
-                    const { data: employeeData } = await supabase
-                        .rpc('login_with_pin', { p_pin: pin });
+                    const ip = await getClientIp();
+                    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : null;
+
+                    const { data: employeeData, error: rpcError } = await supabase
+                        .rpc('login_with_pin', { p_pin: pin, p_ip: ip, p_ua: ua });
+
+                    if (rpcError) throw rpcError;
+
+                    if (employeeData && (employeeData as any).error === 'rate_limited') {
+                        throw new Error((employeeData as any).message || 'Demasiados intentos fallidos. Espera 15 minutos.');
+                    }
 
                     if (employeeData) {
                         const emp = employeeData as Employee;
-                        // Special check: If it's an admin (non-Master), check if verified
                         if (emp.role === 'admin' && !emp.verified && emp.invite_code !== 'CORP-18EC') {
                             throw new Error('Tu cuenta de administrador está pendiente de validación por el Administrador Maestro.');
+                        }
+
+                        const { data: twoFa } = await supabase.rpc('get_2fa_status', { p_employee_id: emp.id });
+                        if (twoFa?.configured && twoFa?.enabled) {
+                            set({
+                                pending2FA: { employee: emp, secret: twoFa.secret_b32 },
+                                isLoading: false
+                            });
+                            return { success: true, requires2FA: true };
                         }
 
                         set({
                             employee: emp,
                             isAuthenticated: true,
                             isLoading: false,
-                            originalAdmin: null // Clear any impersonation on fresh login
+                            originalAdmin: null,
+                            sessionStartedAt: Date.now()
                         });
                         return { success: true };
                     }
@@ -102,6 +142,22 @@ export const useAuthStore = create<AuthState>()(
                     const msg = error.message || 'Error desconocido';
                     return { success: false, error: msg };
                 }
+            },
+
+            complete2FALogin: () => {
+                const pending = get().pending2FA;
+                if (!pending) return;
+                set({
+                    employee: pending.employee,
+                    isAuthenticated: true,
+                    pending2FA: null,
+                    originalAdmin: null,
+                    sessionStartedAt: Date.now()
+                });
+            },
+
+            cancel2FALogin: () => {
+                set({ pending2FA: null });
             },
 
             register: async (firstName: string, lastName: string, pin: string, email: string | null = null, avatarUrl: string | null = null, inviteCode: string | null = null) => {
@@ -269,14 +325,16 @@ export const useAuthStore = create<AuthState>()(
             updateEmployee: async (id: string, updateData: any) => {
                 set({ isLoading: true });
                 try {
+                    const actor = get().employee?.id || null;
                     const { error } = await supabase
-                        .from('employees')
-                        .update(updateData)
-                        .eq('id', id);
+                        .rpc('update_employee_safe', {
+                            p_user_id: id,
+                            p_data: updateData,
+                            p_actor_id: actor
+                        });
 
                     if (error) throw error;
 
-                    // If we updated our own data, refresh the local state
                     const currentEmployee = get().employee;
                     if (currentEmployee && currentEmployee.id === id) {
                         set({ employee: { ...currentEmployee, ...updateData } });
@@ -294,15 +352,19 @@ export const useAuthStore = create<AuthState>()(
             logout: () => {
                 const { originalAdmin } = get();
                 if (originalAdmin) {
-                    // Si estamos impersonando, volvemos al maestro
                     set({
                         employee: originalAdmin,
                         originalAdmin: null,
-                        isAuthenticated: true
+                        isAuthenticated: true,
+                        sessionStartedAt: Date.now()
                     });
                 } else {
-                    // Si es el real, cerramos sesión completa
-                    set({ employee: null, isAuthenticated: false, originalAdmin: null });
+                    set({
+                        employee: null,
+                        isAuthenticated: false,
+                        originalAdmin: null,
+                        sessionStartedAt: null
+                    });
                 }
             },
 
@@ -323,6 +385,18 @@ export const useAuthStore = create<AuthState>()(
         }),
         {
             name: 'auth-storage',
+            storage: createJSONStorage(() => localStorage),
+            onRehydrateStorage: () => (state) => {
+                if (!state) return;
+                const started = state.sessionStartedAt;
+                if (started && Date.now() - started > SESSION_MAX_AGE_MS) {
+                    state.employee = null;
+                    state.isAuthenticated = false;
+                    state.originalAdmin = null;
+                    state.sessionStartedAt = null;
+                    console.warn('Sesión expirada (>8h). Login requerido.');
+                }
+            }
         }
     )
 );

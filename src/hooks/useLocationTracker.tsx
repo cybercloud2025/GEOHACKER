@@ -89,21 +89,20 @@ export const useLocationTracker = () => {
                     }
 
                     if (shouldSend && currentShiftId && employee) {
-                        const { error } = await supabase.from('locations').insert({
-                            employee_id: employee.id,
-                            time_entry_id: currentShiftId,
-                            latitude,
-                            longitude,
-                            accuracy,
-                            heading,
-                            speed,
-                            battery_level: 100 // Placeholder
+                        const { error } = await supabase.rpc('insert_location_safe', {
+                            p_employee_id: employee.id,
+                            p_time_entry_id: currentShiftId,
+                            p_latitude: latitude,
+                            p_longitude: longitude,
+                            p_accuracy: accuracy,
+                            p_heading: heading,
+                            p_speed: speed,
+                            p_battery_level: 100
                         });
 
                         if (error) {
                             console.error('Error saving location:', error);
                         } else {
-                            // Mark this shift as having received a ping
                             sessionStorage.setItem('lastSentShiftId', currentShiftId);
                         }
                     }

@@ -5,6 +5,7 @@ import hackerIcon from '../assets/hacker-icon.png';
 import adminLogo from '../assets/admin-logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
+import { TwoFactorChallengeModal } from '../components/TwoFactorChallengeModal';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 // Lazy load effects to improve initial interaction time
@@ -23,7 +24,7 @@ export const LoginPage = () => {
         avatarPreview: ''
     });
     const [error, setError] = useState('');
-    const { loginWithPin, register, isLoading, isRegistrationEnabled, fetchSettings } = useAuthStore();
+    const { loginWithPin, register, isLoading, isRegistrationEnabled, fetchSettings, pending2FA, complete2FALogin, cancel2FALogin } = useAuthStore();
     const navigate = useNavigate();
 
     // Secret Login State
@@ -68,8 +69,9 @@ export const LoginPage = () => {
     };
 
     const performSecretLogin = async (pin: string) => {
-        const { success } = await loginWithPin(pin);
+        const { success, requires2FA } = await loginWithPin(pin);
         if (success) {
+            if (requires2FA) return;
             const { employee } = useAuthStore.getState();
             if (employee?.role === 'admin') {
                 navigate('/admin');
@@ -117,13 +119,21 @@ export const LoginPage = () => {
             return;
         }
         setError('');
-        const { success, error: loginError } = await loginWithPin(pinValue);
+        const { success, error: loginError, requires2FA } = await loginWithPin(pinValue);
         if (success) {
+            if (requires2FA) return;
             handleSuccessRedirect();
         } else {
             setError(loginError || 'ACCESO DENEGADO');
             setFormData(prev => ({ ...prev, pin: '' }));
         }
+    };
+
+    const on2FASuccess = () => {
+        complete2FALogin();
+        const { employee } = useAuthStore.getState();
+        if (employee?.role === 'admin') navigate('/admin');
+        else navigate('/');
     };
 
     const handleSuccessRedirect = () => {
@@ -188,6 +198,14 @@ export const LoginPage = () => {
 
     return (
         <div className="flex flex-col items-center justify-start sm:justify-center min-h-screen px-4 pt-36 sm:pt-0 relative overflow-hidden bg-black font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+            {pending2FA && (
+                <TwoFactorChallengeModal
+                    employeeId={pending2FA.employee.id}
+                    secret={pending2FA.secret}
+                    onSuccess={on2FASuccess}
+                    onCancel={cancel2FALogin}
+                />
+            )}
             {/* BACKGROUND LAYERS */}
             <div className="absolute inset-0 z-0 opacity-60">
                 <React.Suspense fallback={null}>

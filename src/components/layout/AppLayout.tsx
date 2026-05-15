@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { EmailVerificationBanner } from '../EmailVerificationBanner';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -33,6 +34,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 transition={{ duration: 0.5 }}
                 className="relative z-10 w-full min-h-screen flex flex-col"
             >
+                <EmailVerificationBanner />
                 {children}
             </motion.main>
         </div>
