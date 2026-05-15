@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { authenticator } from 'otplib';
+import { authenticator } from '@otplib/preset-browser';
 import { ShieldCheck, AlertTriangle, KeyRound } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 

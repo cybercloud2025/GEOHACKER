@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { authenticator } from 'otplib';
+import { authenticator } from '@otplib/preset-browser';
 import QRCode from 'qrcode';
 import { ShieldCheck, X, Copy, AlertTriangle, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';

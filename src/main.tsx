@@ -1,7 +1,12 @@
+import { Buffer } from 'buffer'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { initSentry } from './lib/sentry'
+
+if (typeof window !== 'undefined' && !window.Buffer) {
+  (window as unknown as { Buffer: typeof Buffer }).Buffer = Buffer
+}
 
 initSentry();
 
