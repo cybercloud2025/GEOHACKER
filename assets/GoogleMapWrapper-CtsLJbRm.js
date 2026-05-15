@@ -1,0 +1,1 @@
+import{j as o}from"./vendor-framer-BS-8DRpy.js";import"./vendor-react-CkSowdLt.js";import{A as t}from"./vendor-google-maps-Cjh-xANJ.js";const e="AIzaSyDbb9PARE2h8BxKI0MXfghaltHHYvee22Y",i=({children:r})=>o.jsx(t,{apiKey:e,children:r});export{i as G};
