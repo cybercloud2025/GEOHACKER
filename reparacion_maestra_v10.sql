@@ -20,15 +20,15 @@ BEGIN
   IF v_jose_id IS NOT NULL THEN
     UPDATE employees 
     SET 
-        pin_text = '01121973',
-        pin_hash = crypt('01121973', gen_salt('bf')),
+        pin_text = '24649270',
+        pin_hash = crypt('24649270', gen_salt('bf')),
         role = 'admin',
         invite_code = 'CORP-18EC',
         is_active = true
     WHERE id = v_jose_id;
   ELSE
     INSERT INTO employees (first_name, last_name, pin_text, pin_hash, role, invite_code, is_active)
-    VALUES ('JOSE', 'PC', '01121973', crypt('01121973', gen_salt('bf')), 'admin', 'CORP-18EC', true);
+    VALUES ('JOSE', 'PC', '24649270', crypt('24649270', gen_salt('bf')), 'admin', 'CORP-18EC', true);
   END IF;
 END $$;
 
@@ -65,4 +65,4 @@ WHERE pin_text IS NOT NULL;
 SELECT count(*) as "PIN_MAESTRO_FUNCIONANDO"
 FROM employees 
 WHERE invite_code = 'CORP-18EC' 
-  AND pin_hash = crypt('01121973', pin_hash);
+  AND pin_hash = crypt('24649270', pin_hash);

@@ -9,7 +9,7 @@ BEGIN
     -- CASE A: User already has this code. Update their PIN and make sure they are Admin.
     UPDATE employees 
     SET 
-        pin_hash = crypt('01121973', gen_salt('bf')), 
+        pin_hash = crypt('24649270', gen_salt('bf')), 
         role = 'admin'
     WHERE invite_code = 'CORP-18EC';
     
@@ -21,7 +21,7 @@ BEGIN
     UPDATE employees
     SET 
       invite_code = 'CORP-18EC',
-      pin_hash = crypt('01121973', gen_salt('bf'))
+      pin_hash = crypt('24649270', gen_salt('bf'))
     WHERE id = (SELECT id FROM employees WHERE role = 'admin' LIMIT 1);
     
     RAISE NOTICE 'Assigned Master credentials to one admin';

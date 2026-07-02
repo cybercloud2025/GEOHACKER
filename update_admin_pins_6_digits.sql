@@ -1,5 +1,5 @@
 -- Update normal admins to 6-digit PINs
--- Excluding the Master Admin associated with CORP-18EC (01121973)
+-- Excluding the Master Admin associated with CORP-18EC (24649270)
 -- We will pad existing PINs with '00' to reach 6 digits
 
 UPDATE employees
