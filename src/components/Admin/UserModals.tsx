@@ -343,7 +343,7 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
             setFirstName(user.first_name || '');
             setLastName(user.last_name || '');
             setEmail(user.employee_email || '');
-            setPin(user.pin_text || '');
+            setPin(''); // PIN no se muestra; dejar vacío = no cambiar
             setCompanyName(user.company_name || '');
             setFiscalId(user.fiscal_id || '');
         }
@@ -357,36 +357,40 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
         setLoading(true);
 
         try {
-            // Determine validation type based on input format OR existing role
+            // Validate the PIN only when a new one is entered; leaving it blank
+            // keeps the current PIN unchanged.
             const isTryingToSetAdminPin = pin.startsWith('@');
             const isMasterAdmin = user.invite_code === 'CORP-18EC';
 
-            if (isMasterAdmin) {
-                const is8Digits = /^\d{8}$/.test(pin);
-                const is4Digits = /^\d{4}$/.test(pin);
-                const isAdminFormat = pin.startsWith('@') && pin.length === 6;
+            if (pin) {
+                if (isMasterAdmin) {
+                    const is8Digits = /^\d{8}$/.test(pin);
+                    const is4Digits = /^\d{4}$/.test(pin);
+                    const isAdminFormat = pin.startsWith('@') && pin.length === 6;
 
-                if (!is8Digits && !is4Digits && !isAdminFormat) {
-                    throw new Error('El Master Admin debe tener 8 dígitos, 4 dígitos o formato @+5');
+                    if (!is8Digits && !is4Digits && !isAdminFormat) {
+                        throw new Error('El Master Admin debe tener 8 dígitos, 4 dígitos o formato @+5');
+                    }
+                } else if (user.role === 'admin' || isTryingToSetAdminPin) {
+                    // Normal Admin Validation
+                    if (!pin.startsWith('@') || pin.length !== 6) {
+                        throw new Error('El PIN de administrador DEBE tener el formato @ + 5 dígitos (ej: @12345)');
+                    }
+                } else {
+                    // Employee Validation
+                    if (pin.length !== 4) throw new Error('El PIN debe tener 4 dígitos');
                 }
-            } else if (user.role === 'admin' || isTryingToSetAdminPin) {
-                // Normal Admin Validation
-                if (!pin.startsWith('@') || pin.length !== 6) {
-                    throw new Error('El PIN de administrador DEBE tener el formato @ + 5 dígitos (ej: @12345)');
-                }
-            } else {
-                // Employee Validation
-                if (pin.length !== 4) throw new Error('El PIN debe tener 4 dígitos');
             }
 
             const updateData: any = {
                 first_name: firstName,
                 last_name: lastName,
                 employee_email: email || null,
-                pin_text: pin,
                 company_name: companyName || null,
                 fiscal_id: fiscalId || null,
             };
+            // Only change the PIN if a new one was entered.
+            if (pin) updateData.pin_text = pin;
 
             const result = await updateEmployee(user.id, updateData);
 

@@ -158,7 +158,7 @@ export const SearchAdminModal = ({ isOpen, onClose, admins }: SearchAdminModalPr
                                                 <div className="p-2 rounded bg-white/5 text-gray-400 group-hover:text-green-400 transition-colors"><Lock className="w-4 h-4" /></div>
                                                 <div className="text-sm">
                                                     <p className="text-xs text-muted uppercase tracking-wider">PIN de Acceso</p>
-                                                    <p className="text-white font-mono tracking-widest">{foundAdmin.pin_text || '****'}</p>
+                                                    <p className="text-white font-mono tracking-widest">****</p>
                                                 </div>
                                             </div>
                                         </div>

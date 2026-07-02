@@ -135,7 +135,7 @@ export const UserDetailsModal = ({ isOpen, onClose, user, history = [] }: UserDe
                                             <label className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Configuración de Seguridad</label>
                                             <div className="text-white font-mono text-sm bg-white/5 border border-white/10 px-3 py-2 rounded flex items-center gap-2">
                                                 <Shield className="w-3 h-3 text-purple-500" />
-                                                {user.pin_text ? 'PIN DE ACCESO ACTIVO' : 'SIN PIN CONFIGURADO'}
+                                                PIN DE ACCESO ACTIVO
                                             </div>
                                         </div>
                                         <div className="space-y-1">

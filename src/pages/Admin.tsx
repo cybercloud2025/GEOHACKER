@@ -194,7 +194,7 @@ export const AdminPage = () => {
 
     const handleVerifyUser = async (user: any) => {
         if (isMasterAdmin) {
-            const isAdmin = user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@'));
+            const isAdmin = user.role === 'admin';
             if (isAdmin) {
                 const confirmed = window.confirm(`¿Validar al Administrador "${user.first_name} ${user.last_name}"?`);
                 if (!confirmed) return;
@@ -205,7 +205,7 @@ export const AdminPage = () => {
                     const updateData: any = { verified: true };
 
                     // Generate CORP-XXXX code if they are an admin (by role or pin prefix) AND don't have a valid one
-                    const isAdminByPin = (user.pin_text?.startsWith('@'));
+                    const isAdminByPin = false;
                     if ((user.role === 'admin' || isAdminByPin) && (!user.invite_code || user.invite_code.includes('?'))) {
                         const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
                         updateData.invite_code = `CORP-${randomSuffix}`;
@@ -396,7 +396,7 @@ export const AdminPage = () => {
                 `${user.first_name} ${user.last_name}`,
                 user.employee_email || 'No registrado',
                 user.verified ? 'VERIFICADO' : 'TEMPORAL',
-                user.pin_text || '----'
+                '****'
             ]);
 
             // --- TABLE GENERATION ---
@@ -571,7 +571,7 @@ export const AdminPage = () => {
                     `${admin.first_name} ${admin.last_name}`,
                     admin.employee_email || 'No registrado',
                     admin.verified ? 'VERIFICADO' : 'TEMPORAL',
-                    admin.pin_text || '----',
+                    '****',
                 ]);
 
                 // --- TABLE GENERATION ---
@@ -948,7 +948,7 @@ export const AdminPage = () => {
                                                                     )}
                                                                 </div>
                                                                 <div className="text-[10px] text-muted uppercase tracking-tighter">
-                                                                    {user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@')) ? 'Administrador' : 'Empleado'}
+                                                                    {user.role === 'admin' ? 'Administrador' : 'Empleado'}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -962,14 +962,14 @@ export const AdminPage = () => {
                                                         </span>
                                                     </td>
                                                     <td className="p-4 text-center">
-                                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@')) ? 'bg-purple-500/10 text-purple-400 border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}`}>
-                                                            {user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@')) ? 'ADMIN' : 'USUARIO'}
+                                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${user.role === 'admin' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}`}>
+                                                            {user.role === 'admin' ? 'ADMIN' : 'USUARIO'}
                                                         </span>
                                                     </td>
                                                     <td className="p-4">
                                                         <div className="flex items-center justify-center gap-2">
                                                             <span className="px-2 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded text-cyan-300 font-mono font-bold tracking-[0.2em]">
-                                                                {user.pin_text || '----'}
+                                                                {'****'}
                                                             </span>
                                                         </div>
                                                     </td>
@@ -977,13 +977,13 @@ export const AdminPage = () => {
                                                         {isMasterAdmin && !user.verified ? (
                                                             <button
                                                                 onClick={() => handleVerifyUser(user)}
-                                                                className={`flex items-center gap-2 px-3 py-1.5 border transition-all rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse hover:animate-none group ${user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@'))
+                                                                className={`flex items-center gap-2 px-3 py-1.5 border transition-all rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse hover:animate-none group ${user.role === 'admin'
                                                                     ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]'
                                                                     : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]'
                                                                     }`}
-                                                                title={user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@')) ? "Validar este Administrador" : "Validar y Asignar Usuario"}
+                                                                title={user.role === 'admin' ? "Validar este Administrador" : "Validar y Asignar Usuario"}
                                                             >
-                                                                {user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@')) ? (
+                                                                {user.role === 'admin' ? (
                                                                     <>
                                                                         <Shield className="w-4 h-4 group-hover:scale-110 transition-transform" />
                                                                         Validar Admin
@@ -1218,7 +1218,7 @@ export const AdminPage = () => {
                                                     </td>
                                                     <td className="p-4 text-white font-mono text-center">
                                                         <div className="flex items-center justify-center gap-2 text-cyan-400">
-                                                            {admin.pin_text || '----'}
+                                                            {'****'}
                                                         </div>
                                                     </td>
                                                     <td className="p-4 text-center">
