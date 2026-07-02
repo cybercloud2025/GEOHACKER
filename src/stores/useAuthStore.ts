@@ -5,6 +5,12 @@ import { sendWelcomeEmail, sendVerificationRequestEmail } from '../lib/email';
 
 const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
 
+// Slug of the deployed Supabase edge function that verifies the PIN and mints
+// the session JWT. Its source lives in supabase/functions/auth-login; the
+// deployed slug is "rapid-action". Change this if the function is redeployed
+// under a different name.
+const AUTH_LOGIN_FN = 'rapid-action';
+
 interface Employee {
     id: string;
     first_name: string;
@@ -95,7 +101,7 @@ export const useAuthStore = create<AuthState>()(
                     // The auth-login edge function verifies the PIN (bcrypt + IP
                     // rate limiting, IP derived server-side) and returns a signed
                     // JWT plus the employee record.
-                    const { data, error } = await supabase.functions.invoke('auth-login', {
+                    const { data, error } = await supabase.functions.invoke(AUTH_LOGIN_FN, {
                         body: { pin }
                     });
 
