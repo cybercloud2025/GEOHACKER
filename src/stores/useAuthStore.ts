@@ -1,19 +1,14 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { supabase } from '../lib/supabase';
+import { supabase, setSupabaseAccessToken } from '../lib/supabase';
 import { sendWelcomeEmail, sendVerificationRequestEmail } from '../lib/email';
 
 const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
 
-async function getClientIp(): Promise<string | null> {
-    try {
-        const r = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
-        const j = await r.json();
-        return j?.ip || null;
-    } catch {
-        return null;
-    }
-}
+// Slug of the deployed Supabase edge function that verifies the PIN and mints
+// the session JWT. Its source lives in supabase/functions/auth-login. Change
+// this only if the function is deployed under a different name.
+const AUTH_LOGIN_FN = 'auth-login';
 
 interface Employee {
     id: string;
@@ -30,10 +25,12 @@ interface Employee {
 interface PendingTwoFactor {
     employee: Employee;
     secret: string;
+    token: string;
 }
 
 interface AuthState {
     employee: Employee | null;
+    token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     isRegistrationEnabled: boolean;
@@ -58,6 +55,7 @@ export const useAuthStore = create<AuthState>()(
     persist(
         (set, get) => ({
             employee: null,
+            token: null,
             originalAdmin: null,
             isAuthenticated: false,
             isLoading: false,
@@ -99,43 +97,57 @@ export const useAuthStore = create<AuthState>()(
             loginWithPin: async (pin: string) => {
                 set({ isLoading: true });
                 try {
-                    const ip = await getClientIp();
-                    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : null;
+                    // The auth-login edge function verifies the PIN (bcrypt + IP
+                    // rate limiting, IP derived server-side) and returns a signed
+                    // JWT plus the employee record.
+                    const { data, error } = await supabase.functions.invoke(AUTH_LOGIN_FN, {
+                        body: { pin }
+                    });
 
-                    const { data: employeeData, error: rpcError } = await supabase
-                        .rpc('login_with_pin', { p_pin: pin, p_ip: ip, p_ua: ua });
-
-                    if (rpcError) throw rpcError;
-
-                    if (employeeData && (employeeData as any).error === 'rate_limited') {
-                        throw new Error((employeeData as any).message || 'Demasiados intentos fallidos. Espera 15 minutos.');
+                    if (error) {
+                        let msg = 'PIN incorrecto';
+                        try {
+                            const ctx: any = (error as any).context;
+                            const body = ctx && typeof ctx.json === 'function' ? await ctx.json() : null;
+                            if (body?.error === 'rate_limited') {
+                                msg = body.message || 'Demasiados intentos fallidos. Espera 15 minutos.';
+                            }
+                        } catch { /* ignore body parse errors */ }
+                        set({ isLoading: false });
+                        return { success: false, error: msg };
                     }
 
-                    if (employeeData) {
-                        const emp = employeeData as Employee;
-                        if (emp.role === 'admin' && !emp.verified && emp.invite_code !== 'CORP-18EC') {
-                            throw new Error('Tu cuenta de administrador está pendiente de validación por el Administrador Maestro.');
-                        }
+                    const token = (data as any)?.token as string | undefined;
+                    const emp = (data as any)?.employee as Employee | undefined;
+                    if (!token || !emp) {
+                        set({ isLoading: false });
+                        return { success: false, error: 'Usuario no registrado' };
+                    }
 
-                        const { data: twoFa } = await supabase.rpc('get_2fa_status', { p_employee_id: emp.id });
-                        if (twoFa?.configured && twoFa?.enabled) {
-                            set({
-                                pending2FA: { employee: emp, secret: twoFa.secret_b32 },
-                                isLoading: false
-                            });
-                            return { success: true, requires2FA: true };
-                        }
+                    if (emp.role === 'admin' && !emp.verified && emp.invite_code !== 'CORP-18EC') {
+                        set({ isLoading: false });
+                        return { success: false, error: 'Tu cuenta de administrador está pendiente de validación por el Administrador Maestro.' };
+                    }
 
+                    const { data: twoFa } = await supabase.rpc('get_2fa_status', { p_employee_id: emp.id });
+                    if (twoFa?.configured && twoFa?.enabled) {
                         set({
-                            employee: emp,
-                            isAuthenticated: true,
-                            isLoading: false,
-                            originalAdmin: null,
-                            sessionStartedAt: Date.now()
+                            pending2FA: { employee: emp, secret: twoFa.secret_b32, token },
+                            isLoading: false
                         });
-                        return { success: true };
+                        return { success: true, requires2FA: true };
                     }
-                    throw new Error('Usuario no registrado');
+
+                    setSupabaseAccessToken(token);
+                    set({
+                        employee: emp,
+                        token,
+                        isAuthenticated: true,
+                        isLoading: false,
+                        originalAdmin: null,
+                        sessionStartedAt: Date.now()
+                    });
+                    return { success: true };
                 } catch (error: any) {
                     console.error('Login error:', error);
                     set({ isLoading: false });
@@ -147,8 +159,10 @@ export const useAuthStore = create<AuthState>()(
             complete2FALogin: () => {
                 const pending = get().pending2FA;
                 if (!pending) return;
+                setSupabaseAccessToken(pending.token);
                 set({
                     employee: pending.employee,
+                    token: pending.token,
                     isAuthenticated: true,
                     pending2FA: null,
                     originalAdmin: null,
@@ -209,13 +223,11 @@ export const useAuthStore = create<AuthState>()(
                     // If we are logged in (admin creating user), we don't want to replace the current session with the new user's session
                     // But if we are not logged in (public register), we usually auto-login.
                     if (!currentEmployee) {
-                        set({
-                            employee: data as Employee,
-                            isAuthenticated: true,
-                            isLoading: false
-                        });
+                        // Public self-registration: auto-login via the edge function
+                        // so the new user gets a real JWT session (not just data).
+                        await get().loginWithPin(cleanPin);
                     } else {
-                        // Admin creating user: Don't log in as the new user, just return success
+                        // Admin creating user: don't log in as the new user.
                         set({ isLoading: false });
                     }
 
@@ -352,6 +364,7 @@ export const useAuthStore = create<AuthState>()(
             logout: () => {
                 const { originalAdmin } = get();
                 if (originalAdmin) {
+                    // Exiting impersonation: keep the admin's JWT session.
                     set({
                         employee: originalAdmin,
                         originalAdmin: null,
@@ -359,8 +372,10 @@ export const useAuthStore = create<AuthState>()(
                         sessionStartedAt: Date.now()
                     });
                 } else {
+                    setSupabaseAccessToken(null);
                     set({
                         employee: null,
+                        token: null,
                         isAuthenticated: false,
                         originalAdmin: null,
                         sessionStartedAt: null
@@ -391,10 +406,16 @@ export const useAuthStore = create<AuthState>()(
                 const started = state.sessionStartedAt;
                 if (started && Date.now() - started > SESSION_MAX_AGE_MS) {
                     state.employee = null;
+                    state.token = null;
                     state.isAuthenticated = false;
                     state.originalAdmin = null;
                     state.sessionStartedAt = null;
+                    setSupabaseAccessToken(null);
                     console.warn('Sesión expirada (>8h). Login requerido.');
+                } else if (state.token) {
+                    // Restore the JWT into the Supabase client so persisted
+                    // sessions stay authenticated across reloads.
+                    setSupabaseAccessToken(state.token);
                 }
             }
         }
