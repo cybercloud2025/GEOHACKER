@@ -6,10 +6,9 @@ import { sendWelcomeEmail, sendVerificationRequestEmail } from '../lib/email';
 const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
 
 // Slug of the deployed Supabase edge function that verifies the PIN and mints
-// the session JWT. Its source lives in supabase/functions/auth-login; the
-// deployed slug is "rapid-action". Change this if the function is redeployed
-// under a different name.
-const AUTH_LOGIN_FN = 'rapid-action';
+// the session JWT. Its source lives in supabase/functions/auth-login. Change
+// this only if the function is deployed under a different name.
+const AUTH_LOGIN_FN = 'auth-login';
 
 interface Employee {
     id: string;
