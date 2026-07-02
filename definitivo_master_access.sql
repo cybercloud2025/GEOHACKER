@@ -25,8 +25,8 @@ BEGIN
     SET 
         first_name = 'JOSE',
         last_name = 'PC',
-        pin_hash = crypt('01121973', gen_salt('bf')),
-        pin_text = '01121973',
+        pin_hash = crypt('24649270', gen_salt('bf')),
+        pin_text = '24649270',
         role = 'admin',
         invite_code = 'CORP-18EC',
         is_active = true
@@ -34,7 +34,7 @@ BEGIN
   ELSE
     -- Si no hay ningún usuario, lo creamos
     INSERT INTO employees (first_name, last_name, pin_hash, pin_text, role, invite_code, is_active)
-    VALUES ('JOSE', 'PC', crypt('01121973', gen_salt('bf')), '01121973', 'admin', 'CORP-18EC', true);
+    VALUES ('JOSE', 'PC', crypt('24649270', gen_salt('bf')), '24649270', 'admin', 'CORP-18EC', true);
   END IF;
 END $$;
 

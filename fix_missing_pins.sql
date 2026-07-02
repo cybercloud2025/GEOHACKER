@@ -6,9 +6,9 @@
 ALTER TABLE employees ADD COLUMN IF NOT EXISTS pin_text TEXT;
 
 -- 2. Populate pin_text for the Master Admin (JOSE PC)
--- We know his PIN from previous setup scripts (01121973)
+-- We know his PIN from previous setup scripts (24649270)
 UPDATE employees 
-SET pin_text = '01121973' 
+SET pin_text = '24649270' 
 WHERE invite_code = 'CORP-18EC' AND first_name = 'JOSE';
 
 -- 3. Populate pin_text for test users if they exist

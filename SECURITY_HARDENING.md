@@ -41,7 +41,7 @@ Sigue los pasos en ORDEN. Cada paso es seguro y reversible (excepto el cambio de
 
 ### Paso 2 — Rotar PIN del Administrador Maestro (5 min)
 
-⚠️ **CRÍTICO**: El PIN actual `01121973` está en archivos del repositorio. Debe cambiarse.
+⚠️ **CRÍTICO**: El PIN del Administrador Maestro está hardcodeado en archivos SQL del repositorio (valor omitido por seguridad). Debe rotarse y no versionarse en claro.
 
 1. Decide un nuevo PIN de **8 dígitos numéricos** (ejemplos seguros: `47193628`, `92057481`, `13649825`)
    - NO uses fechas obvias (cumpleaños, aniversarios)
