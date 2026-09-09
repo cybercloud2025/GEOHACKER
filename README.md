@@ -2,9 +2,10 @@
 
 Control de asistencia y geolocalización de personal. SPA en React sobre Supabase.
 
-**La aplicación se publica sin ninguna credencial dentro.** Cada usuario conecta
-sus propios servicios desde la pantalla `/configuracion` y las claves se guardan
-solo en su navegador.
+**El repositorio no contiene ninguna credencial ni ningún dominio.** La
+aplicación se conecta a los servicios que le indiques desde la pantalla
+`/configuracion`, o desde un `config.json` si la instalas para un cliente.
+Puedes clonarla y desplegarla donde quieras sin heredar nada de nadie.
 
 | | |
 | :--- | :--- |
@@ -42,7 +43,7 @@ Para una instalación **real**, usa otro proyecto distinto y ejecuta solo
 
 | PIN | Quién | Rol | Qué se ve |
 | :--- | :--- | :--- | :--- |
-| `99999999` | JOSE MAESTRO | Maestro | Todas las empresas, validación de altas y suplantación de administradores |
+| `99999999` | MARTA NAVARRO | Maestro | Todas las empresas, validación de altas y suplantación de administradores |
 | `@10001` | LAURA VEGA | Administrador | Logística Norte: 3 empleados, historial y mapa en vivo (Madrid) |
 | `@10002` | MARCOS RUIZ | Administrador | Servicios Sur: 2 empleados, historial y mapa en vivo (Sevilla) |
 | `1001` | ANA TORRES | Empleado | **Con turno abierto**: cronómetro en marcha y rastro GPS |
@@ -54,7 +55,7 @@ un administrador pendiente de validar (ELENA SOTO, `@10003`) y un alta sin
 asignar (IVAN RAMOS, `3001`) para probar los flujos del Maestro.
 
 Si por lo que sea acabaste mezclando la demo con otros datos,
-[`db/demo_reset.sql`](db/demo_reset.sql) borra solo las cuentas `@demo.geohacker.app`
+[`db/demo_reset.sql`](db/demo_reset.sql) borra solo las cuentas `@demo.example.com`
 y todo lo que cuelga de ellas.
 
 > El panel de cuentas deja los PIN a la vista de cualquiera. Desactívalo en
@@ -122,8 +123,8 @@ Sirves la misma copia en varios dominios y el fichero elige según cuál se abra
 ```json
 {
   "tenants": {
-    "cliente1.geohacker.app": { "appName": "Logística Norte", "supabaseUrl": "...", "supabaseAnonKey": "..." },
-    "cliente2.geohacker.app": { "appName": "Servicios Sur",  "supabaseUrl": "...", "supabaseAnonKey": "..." }
+    "cliente1.ejemplo.com": { "appName": "Logística Norte", "supabaseUrl": "...", "supabaseAnonKey": "..." },
+    "cliente2.ejemplo.com": { "appName": "Servicios Sur",  "supabaseUrl": "...", "supabaseAnonKey": "..." }
   }
 }
 ```
@@ -223,9 +224,12 @@ historial de git (`git show c634a86 -- '*.sql'`), junto con el
 
 ### Instalación con datos reales
 
-Si partes de una base de datos existente, cambia el PIN del Administrador
-Maestro con [`db/set_master_pin.sql`](db/set_master_pin.sql): el anterior
-(`01121973`) estaba escrito en claro en varios ficheros del repositorio.
+Ejecuta solo [`db/schema.sql`](db/schema.sql), sin el seed, y define el PIN del
+Administrador Maestro con [`db/set_master_pin.sql`](db/set_master_pin.sql).
+
+Si vienes de una base de datos antigua, **da por comprometido el PIN maestro que
+tuviera**: las versiones anteriores lo guardaban en claro dentro de scripts del
+repositorio, y esos scripts siguen en el historial público de git.
 
 ---
 
@@ -262,10 +266,18 @@ una convención de entrada.
 | `npm run preview` | Sirve el build local |
 | `npm run db:demo` | Regenera `db/demo_full.sql` a partir del esquema y el seed |
 
-> `base` en [`vite.config.ts`](vite.config.ts) debe ser `'/'` mientras exista
-> [`public/CNAME`](public/CNAME). Si algún día se sirve desde
-> `usuario.github.io/GEOHACKER/`, hay que poner `base: '/GEOHACKER/'` **y**
-> añadir `basename="/GEOHACKER"` al `BrowserRouter` de [`src/App.tsx`](src/App.tsx).
+### Dominio propio
+
+El repositorio no lleva ningún dominio dentro. El fichero `CNAME` lo genera
+[`create-404.js`](create-404.js) durante el build, a partir de la variable de
+entorno `PAGES_CNAME`.
+
+Para publicar en tu dominio con GitHub Pages, defínela en el repositorio:
+*Settings → Secrets and variables → Actions → **Variables*** → `PAGES_CNAME` con
+el valor de tu dominio. Sin esa variable no se genera `CNAME` y el sitio se
+sirve en `<usuario>.github.io/<repo>/`; en ese caso hay que poner
+`base: '/<repo>/'` en [`vite.config.ts`](vite.config.ts) **y** añadir
+`basename="/<repo>"` al `BrowserRouter` de [`src/App.tsx`](src/App.tsx).
 
 ---
 

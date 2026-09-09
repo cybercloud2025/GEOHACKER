@@ -9,7 +9,7 @@
 -- REQUISITO: ejecutar antes db/schema.sql.
 --
 -- Es idempotente: vuelve a generar el mundo de demo desde cero en cada
--- ejecución. Todas las cuentas usan el dominio @demo.geohacker.app, que es lo
+-- ejecución. Todas las cuentas usan el dominio @demo.example.com, que es lo
 -- que permite borrarlas sin tocar datos reales (ver db/demo_reset.sql).
 --
 -- ⚠️  NO lo ejecutes en la base de datos de producción.
@@ -19,7 +19,7 @@
 -- 1. LIMPIEZA DE UNA EJECUCIÓN ANTERIOR
 -- ---------------------------------------------------------------------------
 -- El borrado en cascada se lleva por delante fichajes, pausas y ubicaciones.
-DELETE FROM employees WHERE employee_email LIKE '%@demo.geohacker.app';
+DELETE FROM employees WHERE employee_email LIKE '%@demo.example.com';
 
 -- ---------------------------------------------------------------------------
 -- 2. CUENTAS
@@ -32,8 +32,8 @@ INSERT INTO employees
     (first_name, last_name, pin_text, pin_hash, role, verified, is_master,
      employee_email, invite_code, company_name, fiscal_id)
 VALUES
-    ('JOSE', 'MAESTRO', '99999999', 'x', 'admin', true, true,
-     'maestro@demo.geohacker.app', 'CORP-DEMO', 'GEOHACKER Central', 'B00000000');
+    ('MARTA', 'NAVARRO', '99999999', 'x', 'admin', true, true,
+     'maestro@demo.example.com', 'CORP-DEMO', 'GEOHACKER Central', 'B00000000');
 
 -- 2.2 Administradores de empresa (validados)
 INSERT INTO employees
@@ -41,9 +41,9 @@ INSERT INTO employees
      employee_email, invite_code, company_name, fiscal_id)
 VALUES
     ('LAURA', 'VEGA', '@10001', 'x', 'admin', true, false,
-     'laura.vega@demo.geohacker.app', 'CORP-NRT1', 'Logística Norte S.L.', 'B11111111'),
+     'laura.vega@demo.example.com', 'CORP-NRT1', 'Logística Norte S.L.', 'B11111111'),
     ('MARCOS', 'RUIZ', '@10002', 'x', 'admin', true, false,
-     'marcos.ruiz@demo.geohacker.app', 'CORP-SUR2', 'Servicios Sur S.A.', 'A22222222');
+     'marcos.ruiz@demo.example.com', 'CORP-SUR2', 'Servicios Sur S.A.', 'A22222222');
 
 -- 2.3 Administrador pendiente de validación (para probar ese flujo)
 INSERT INTO employees
@@ -51,33 +51,33 @@ INSERT INTO employees
      employee_email, invite_code, company_name, fiscal_id)
 VALUES
     ('ELENA', 'SOTO', '@10003', 'x', 'admin', false, false,
-     'elena.soto@demo.geohacker.app', 'CORP-EST3', 'Transportes Este S.L.', 'B33333333');
+     'elena.soto@demo.example.com', 'CORP-EST3', 'Transportes Este S.L.', 'B33333333');
 
 -- 2.4 Empleados de Logística Norte
 INSERT INTO employees
     (first_name, last_name, pin_text, pin_hash, role, verified, employee_email, admin_id)
 VALUES
-    ('ANA',   'TORRES', '1001', 'x', 'employee', true, 'ana.torres@demo.geohacker.app',
+    ('ANA',   'TORRES', '1001', 'x', 'employee', true, 'ana.torres@demo.example.com',
      (SELECT id FROM employees WHERE pin_text = '@10001')),
-    ('DAVID', 'MORA',   '1002', 'x', 'employee', true, 'david.mora@demo.geohacker.app',
+    ('DAVID', 'MORA',   '1002', 'x', 'employee', true, 'david.mora@demo.example.com',
      (SELECT id FROM employees WHERE pin_text = '@10001')),
-    ('SOFIA', 'LEON',   '1003', 'x', 'employee', true, 'sofia.leon@demo.geohacker.app',
+    ('SOFIA', 'LEON',   '1003', 'x', 'employee', true, 'sofia.leon@demo.example.com',
      (SELECT id FROM employees WHERE pin_text = '@10001'));
 
 -- 2.5 Empleados de Servicios Sur
 INSERT INTO employees
     (first_name, last_name, pin_text, pin_hash, role, verified, employee_email, admin_id)
 VALUES
-    ('HUGO',   'PRIETO', '2001', 'x', 'employee', true, 'hugo.prieto@demo.geohacker.app',
+    ('HUGO',   'PRIETO', '2001', 'x', 'employee', true, 'hugo.prieto@demo.example.com',
      (SELECT id FROM employees WHERE pin_text = '@10002')),
-    ('CARMEN', 'GIL',    '2002', 'x', 'employee', true, 'carmen.gil@demo.geohacker.app',
+    ('CARMEN', 'GIL',    '2002', 'x', 'employee', true, 'carmen.gil@demo.example.com',
      (SELECT id FROM employees WHERE pin_text = '@10002'));
 
 -- 2.6 Alta sin asignar (para probar "Validar y Asignar Usuario" del Maestro)
 INSERT INTO employees
     (first_name, last_name, pin_text, pin_hash, role, verified, employee_email, admin_id)
 VALUES
-    ('IVAN', 'RAMOS', '3001', 'x', 'employee', false, 'ivan.ramos@demo.geohacker.app', NULL);
+    ('IVAN', 'RAMOS', '3001', 'x', 'employee', false, 'ivan.ramos@demo.example.com', NULL);
 
 -- ---------------------------------------------------------------------------
 -- 3. HISTORIAL DE FICHAJES, PAUSAS Y RUTAS GPS
@@ -106,7 +106,7 @@ BEGIN
                CASE WHEN e.pin_text LIKE '1%' THEN 40.4168 ELSE 37.3891 END AS lat_base,
                CASE WHEN e.pin_text LIKE '1%' THEN -3.7038 ELSE -5.9845 END AS lng_base
         FROM employees e
-        WHERE e.employee_email LIKE '%@demo.geohacker.app'
+        WHERE e.employee_email LIKE '%@demo.example.com'
           AND e.role = 'employee'
           AND e.verified = true
         ORDER BY e.pin_text
@@ -194,7 +194,7 @@ BEGIN
         -- ANA TORRES (Norte) y HUGO PRIETO (Sur): uno por empresa, para que
         -- cada administrador vea a alguien trabajando en su propio mapa.
         WHERE e.pin_text IN ('1001', '2001')
-          AND e.employee_email LIKE '%@demo.geohacker.app'
+          AND e.employee_email LIKE '%@demo.example.com'
     LOOP
         v_inicio := now() - INTERVAL '3 hours';
         v_lat := v_emp.lat_base + (random() - 0.5) * 0.02;
@@ -251,19 +251,19 @@ DECLARE
     v_masters  INTEGER;
 BEGIN
     SELECT count(*) INTO v_cuentas FROM employees
-     WHERE employee_email LIKE '%@demo.geohacker.app';
+     WHERE employee_email LIKE '%@demo.example.com';
 
     SELECT count(*) INTO v_fichajes FROM time_entries te
       JOIN employees e ON e.id = te.employee_id
-     WHERE e.employee_email LIKE '%@demo.geohacker.app';
+     WHERE e.employee_email LIKE '%@demo.example.com';
 
     SELECT count(*) INTO v_puntos FROM locations l
       JOIN employees e ON e.id = l.employee_id
-     WHERE e.employee_email LIKE '%@demo.geohacker.app';
+     WHERE e.employee_email LIKE '%@demo.example.com';
 
     SELECT count(*) INTO v_activos FROM time_entries te
       JOIN employees e ON e.id = te.employee_id
-     WHERE e.employee_email LIKE '%@demo.geohacker.app' AND te.end_time IS NULL;
+     WHERE e.employee_email LIKE '%@demo.example.com' AND te.end_time IS NULL;
 
     SELECT count(*) INTO v_masters FROM employees WHERE is_master;
 
@@ -275,7 +275,7 @@ BEGIN
     RAISE NOTICE '  Turnos abiertos ahora .... %', v_activos;
     RAISE NOTICE '  Administradores maestros . %', v_masters;
     RAISE NOTICE '';
-    RAISE NOTICE '  Maestro   99999999   JOSE MAESTRO';
+    RAISE NOTICE '  Maestro   99999999   MARTA NAVARRO';
     RAISE NOTICE '  Admin     @10001     LAURA VEGA    (Logistica Norte)';
     RAISE NOTICE '  Admin     @10002     MARCOS RUIZ   (Servicios Sur)';
     RAISE NOTICE '  Empleado  1001       ANA TORRES    (fichada ahora)';

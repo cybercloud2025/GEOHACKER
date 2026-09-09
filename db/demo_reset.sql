@@ -2,7 +2,7 @@
 -- GEOHACKER — BORRAR LOS DATOS DE DEMOSTRACIÓN
 -- ============================================================================
 -- Elimina únicamente las cuentas creadas por db/demo_seed.sql, identificadas
--- por el dominio @demo.geohacker.app. El borrado en cascada arrastra sus
+-- por el dominio @demo.example.com. El borrado en cascada arrastra sus
 -- fichajes, pausas, ubicaciones y sesiones.
 --
 -- No toca ninguna cuenta real.
@@ -11,16 +11,16 @@
 -- Qué se va a borrar (ejecútalo antes si quieres revisarlo):
 SELECT first_name, last_name, pin_text, role, company_name
   FROM employees
- WHERE employee_email LIKE '%@demo.geohacker.app'
+ WHERE employee_email LIKE '%@demo.example.com'
  ORDER BY role DESC, pin_text;
 
-DELETE FROM employees WHERE employee_email LIKE '%@demo.geohacker.app';
+DELETE FROM employees WHERE employee_email LIKE '%@demo.example.com';
 
 DO $limpieza$
 DECLARE v_restantes INTEGER;
 BEGIN
     SELECT count(*) INTO v_restantes FROM employees
-     WHERE employee_email LIKE '%@demo.geohacker.app';
+     WHERE employee_email LIKE '%@demo.example.com';
 
     IF v_restantes = 0 THEN
         RAISE NOTICE 'Datos de demostración eliminados.';

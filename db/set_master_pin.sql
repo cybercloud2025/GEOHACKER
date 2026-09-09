@@ -1,8 +1,9 @@
 -- ============================================================================
 -- CAMBIAR EL PIN DEL ADMINISTRADOR MAESTRO
 -- ============================================================================
--- El PIN anterior (01121973) estaba escrito en claro dentro de varios ficheros
--- del repositorio, así que hay que darlo por comprometido y cambiarlo.
+-- Úsalo al montar una instalación real. Si vienes de una base de datos
+-- antigua, da por comprometido el PIN que tuviera: las versiones anteriores lo
+-- guardaban en claro dentro de scripts del repositorio.
 --
 -- Uso:
 --   1. Sustituye NUEVO_PIN_AQUI por el PIN que quieras (8 dígitos).

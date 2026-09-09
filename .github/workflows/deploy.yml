@@ -46,6 +46,11 @@ jobs:
         run: npm run build
         env:
           VITE_DEMO_MODE: "true"
+          # Dominio propio, si lo hay. Se define en
+          # Settings -> Secrets and variables -> Actions -> Variables.
+          # Si no existe, el sitio se sirve en <usuario>.github.io/<repo>/
+          # y el repositorio no queda atado a ningun dominio.
+          PAGES_CNAME: ${{ vars.PAGES_CNAME }}
           # VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           # VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           # VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}

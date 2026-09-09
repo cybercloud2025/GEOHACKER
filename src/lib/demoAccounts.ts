@@ -20,7 +20,7 @@ export interface CuentaDemo {
 export const CUENTAS_DEMO: CuentaDemo[] = [
     {
         pin: '99999999',
-        nombre: 'JOSE MAESTRO',
+        nombre: 'MARTA NAVARRO',
         rol: 'maestro',
         empresa: 'GEOHACKER Central',
         descripcion: 'Ve todas las empresas, valida altas y puede entrar como cualquier administrador.',

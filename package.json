@@ -1,9 +1,8 @@
 {
-  "name": "geolocalizacion",
+  "name": "geohacker",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://geohacker.app",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && node create-404.js",

@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // El sitio se sirve en el dominio propio (public/CNAME -> geohacker.app),
-  // asi que la raiz es '/'. Con '/GEOHACKER/' el bundle pedia
-  // https://geohacker.app/GEOHACKER/assets/... y devolvia 404.
+  // Raiz del sitio. Sirve tal cual para un dominio propio y para un servidor
+  // propio. Si algun dia se publica en <usuario>.github.io/<repo>/, hay que
+  // poner aqui '/<repo>/' Y ademas basename="/<repo>" en el BrowserRouter.
   base: '/',
   plugins: [react()],
   server: {

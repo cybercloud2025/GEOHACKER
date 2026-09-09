@@ -13,7 +13,7 @@ import {
 } from '../lib/config';
 
 const VACIA: AppConfig = {
-    supabaseUrl: '', supabaseAnonKey: '', googleMapsApiKey: '',
+    appName: '', supabaseUrl: '', supabaseAnonKey: '', googleMapsApiKey: '',
     emailjsPublicKey: '', emailjsServiceId: '',
     emailjsTemplateWelcomeId: '', emailjsTemplateResetId: '',
 };

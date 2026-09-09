@@ -19,6 +19,8 @@ import { persist } from 'zustand/middleware';
  * otra base de datos.
  */
 export interface AppConfig {
+    /** Nombre visible bajo el logotipo. Vacío = se muestra solo la marca. */
+    appName: string;
     supabaseUrl: string;
     supabaseAnonKey: string;
     googleMapsApiKey: string;
@@ -34,13 +36,14 @@ export type Origen = 'instalacion' | 'usuario' | 'entorno' | 'ninguno';
 const texto = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
 
 const CLAVES: ClaveConfig[] = [
-    'supabaseUrl', 'supabaseAnonKey', 'googleMapsApiKey',
+    'appName', 'supabaseUrl', 'supabaseAnonKey', 'googleMapsApiKey',
     'emailjsPublicKey', 'emailjsServiceId',
     'emailjsTemplateWelcomeId', 'emailjsTemplateResetId',
 ];
 
 /** Valores que vienen del build. Estarán vacíos si no hay `.env`. */
 const DESDE_ENTORNO: AppConfig = {
+    appName: texto(import.meta.env.VITE_APP_NAME),
     supabaseUrl: texto(import.meta.env.VITE_SUPABASE_URL),
     supabaseAnonKey: texto(import.meta.env.VITE_SUPABASE_ANON_KEY),
     googleMapsApiKey: texto(import.meta.env.VITE_GOOGLE_MAPS_API_KEY),
@@ -56,9 +59,8 @@ const DEMO_POR_DEFECTO = texto(import.meta.env.VITE_DEMO_MODE) === 'true';
 // Configuración de instalación (config.json)
 // ---------------------------------------------------------------------------
 
-/** Bloque de credenciales, más un nombre opcional para personalizar la copia. */
+/** Bloque de configuración, más la preferencia de mostrar cuentas de prueba. */
 interface BloqueInstalacion extends Partial<AppConfig> {
-    appName?: string;
     showDemoAccounts?: boolean;
 }
 
@@ -69,7 +71,7 @@ interface BloqueInstalacion extends Partial<AppConfig> {
  *     { "supabaseUrl": "...", "supabaseAnonKey": "..." }
  *
  *   Varias copias en un mismo despliegue, una por dominio:
- *     { "tenants": { "cliente1.geohacker.app": { "supabaseUrl": "..." } } }
+ *     { "tenants": { "cliente1.ejemplo.com": { "supabaseUrl": "..." } } }
  */
 interface FicheroInstalacion extends BloqueInstalacion {
     tenants?: Record<string, BloqueInstalacion>;
@@ -111,12 +113,13 @@ export const cargarConfigInstalacion = async (): Promise<void> => {
     }
 };
 
-/** ¿Esta copia trae su configuración puesta por quien la instaló? */
+/**
+ * ¿Esta copia trae sus credenciales puestas por quien la instaló?
+ * Se mira solo la conexión: un config.json que traiga únicamente el nombre no
+ * convierte la copia en una instalación gestionada.
+ */
 export const instalacionActiva = (): boolean =>
-    CLAVES.some((c) => texto(DESDE_INSTALACION[c]));
-
-/** Nombre para personalizar la copia de cada cliente. */
-export const nombreApp = (): string => texto(DESDE_INSTALACION.appName);
+    Boolean(texto(DESDE_INSTALACION.supabaseUrl) || texto(DESDE_INSTALACION.supabaseAnonKey));
 
 // ---------------------------------------------------------------------------
 // Preferencias del navegador
@@ -216,6 +219,9 @@ export const supabaseConfigurado = (): boolean => {
     return Boolean(supabaseUrl && supabaseAnonKey);
 };
 
+/** Nombre para personalizar la copia. Configurable desde /configuracion. */
+export const nombreApp = (): string => getConfig().appName;
+
 export const googleMapsConfigurado = (): boolean => Boolean(getConfig().googleMapsApiKey);
 
 export const emailConfigurado = (): boolean => {
@@ -232,6 +238,14 @@ export const CAMPOS: Array<{
     secreto: boolean;
     marcador: string;
 }> = [
+    {
+        clave: 'appName',
+        etiqueta: 'Nombre de la organización',
+        ayuda: 'Aparece bajo el logotipo en la pantalla de acceso. Puedes dejarlo vacío.',
+        obligatorio: false,
+        secreto: false,
+        marcador: 'Mi Empresa S.L.',
+    },
     {
         clave: 'supabaseUrl',
         etiqueta: 'Supabase — URL del proyecto',

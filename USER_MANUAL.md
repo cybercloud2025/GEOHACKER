@@ -84,4 +84,4 @@ Esta herramienta es vital para la coordinación logística.
 - Solución: Un administrador puede resetear su contraseña o eliminar su cuenta para que se registre de nuevo.
 
 ---
-**Soporte Técnico: admin@geohacker.app**
+**Soporte técnico: el administrador de tu organización**
