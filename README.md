@@ -258,6 +258,11 @@ una convención de entrada.
 
 ## Scripts
 
+> **Ramas.** El desarrollo y el despliegue viven en `master`. La rama `main`
+> está archivada bajo la etiqueta `archivo/jwt-edge-function` y ya no publica
+> nada: conservaba su propio workflow de despliegue, y cualquier commit allí
+> sobrescribía el sitio con una versión antigua.
+
 | Comando | Qué hace |
 | :--- | :--- |
 | `npm run dev` | Servidor de desarrollo |
