@@ -116,6 +116,38 @@ Parte de [`public/config.example.json`](public/config.example.json):
 
 `appName` aparece bajo el logotipo, para que cada cliente vea su nombre.
 
+### Opción 0 — un despliegue por cliente, sin ficheros por cliente
+
+La forma recomendada. El `config.json` **no se escribe a mano ni se guarda en
+el repositorio**: lo genera el build a partir de variables de entorno, así que
+un mismo repositorio produce una instalación distinta por cliente según dónde
+se compile.
+
+| Variable | Para qué |
+| :--- | :--- |
+| `CONFIG_APP_NAME` | Nombre visible bajo el logotipo |
+| `CONFIG_SUPABASE_URL` | URL del proyecto de ese cliente |
+| `CONFIG_SUPABASE_ANON_KEY` | Su clave anónima |
+| `CONFIG_GOOGLE_MAPS_API_KEY` | Opcional |
+| `CONFIG_EMAILJS_*` | Opcional |
+| `CONFIG_SHOW_DEMO_ACCOUNTS` | `false` en instalaciones reales |
+| `PAGES_CNAME` | Su dominio, si el alojamiento lo usa |
+
+En **Cloudflare Pages** (gratuito, admite tantos proyectos como quieras):
+
+1. *Create project* → conecta este repositorio de GitHub.
+2. Build command `npm run build`, output directory `dist`.
+3. En *Settings → Environment variables*, define las de arriba para ese cliente.
+4. En *Custom domains*, añade su dominio.
+
+Repite desde el paso 1 por cada cliente. Todos compilan **el mismo código**:
+publicas una corrección y les llega a todos, pero cada uno arranca apuntando a
+su propia base de datos.
+
+Para varios dominios en un único proyecto existe `APP_CONFIG`, que admite el
+JSON completo con el bloque `tenants`. Ten en cuenta que entonces las claves de
+todos los clientes quedan en el mismo fichero público.
+
 ### Opción 1 — un dominio por cliente, un solo despliegue
 
 Sirves la misma copia en varios dominios y el fichero elige según cuál se abra:
