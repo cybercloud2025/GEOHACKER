@@ -19,16 +19,24 @@ solo en su navegador.
 
 ## Probar la demo en 5 minutos
 
-1. **Crea un proyecto** gratuito en [supabase.com](https://supabase.com).
-2. En su **SQL Editor**, ejecuta en este orden:
-   - [`db/schema.sql`](db/schema.sql) — tablas, funciones y permisos.
-   - [`db/demo_seed.sql`](db/demo_seed.sql) — el mundo de demostración.
-3. Arranca la app (`npm install && npm run dev`) y abre **`/configuracion`**.
+> Usa un proyecto de Supabase **exclusivo para la demo**. El seed crea cuentas
+> con PIN conocidos y públicos: no deben convivir con datos reales.
+
+1. **Crea un proyecto nuevo** en [supabase.com](https://supabase.com) (el plan
+   gratuito sobra). Llámalo por ejemplo `geohacker-demo`.
+2. Abre su **SQL Editor**, pega [`db/demo_full.sql`](db/demo_full.sql) entero y
+   ejecútalo. Es un único fichero: esquema + datos de demostración. Al terminar
+   verás en los mensajes el resumen y la lista de cuentas.
+3. Arranca la app (`npm install && npm run dev`) o entra en el sitio publicado,
+   y abre **`/configuracion`**.
 4. Pega la **URL** y la **clave anónima** del proyecto (Supabase → *Project
    Settings* → *Data API*). La clave de Google Maps es opcional: sin ella todo
    funciona salvo los mapas.
 5. Vuelve al acceso: bajo el formulario aparecen las cuentas de prueba. Pulsa
    cualquiera para entrar.
+
+Para una instalación **real**, usa otro proyecto distinto y ejecuta solo
+[`db/schema.sql`](db/schema.sql), sin el seed.
 
 ### Cuentas de la demo
 
@@ -45,7 +53,9 @@ El seed genera además 6 jornadas cerradas por empleado con pausas y rutas GPS,
 un administrador pendiente de validar (ELENA SOTO, `@10003`) y un alta sin
 asignar (IVAN RAMOS, `3001`) para probar los flujos del Maestro.
 
-Para borrarlo todo sin tocar datos reales: [`db/demo_reset.sql`](db/demo_reset.sql).
+Si por lo que sea acabaste mezclando la demo con otros datos,
+[`db/demo_reset.sql`](db/demo_reset.sql) borra solo las cuentas `@demo.geohacker.app`
+y todo lo que cuelga de ellas.
 
 > El panel de cuentas deja los PIN a la vista de cualquiera. Desactívalo en
 > *Configuración → Mostrar cuentas de prueba* antes de usar datos reales.
@@ -152,6 +162,7 @@ una convención de entrada.
 | `npm run build` | `tsc -b` + build de Vite + genera `404.html` para el enrutado SPA |
 | `npm run lint` | ESLint |
 | `npm run preview` | Sirve el build local |
+| `npm run db:demo` | Regenera `db/demo_full.sql` a partir del esquema y el seed |
 
 > `base` en [`vite.config.ts`](vite.config.ts) debe ser `'/'` mientras exista
 > [`public/CNAME`](public/CNAME). Si algún día se sirve desde
@@ -166,8 +177,11 @@ una convención de entrada.
 db/
   schema.sql          Esquema único: tablas, RPC, permisos y migración
   demo_seed.sql       Mundo de demostración (cuentas, fichajes, rutas GPS)
+  demo_full.sql       Generado: schema + seed en un solo pegado
   demo_reset.sql      Borra solo los datos de demostración
   set_master_pin.sql  Plantilla para cambiar el PIN maestro
+scripts/
+  build-demo-sql.js   Genera demo_full.sql (npm run db:demo)
 src/
   lib/
     config.ts         Configuración en tiempo de ejecución (claves del usuario)
