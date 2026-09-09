@@ -8,7 +8,8 @@ import { Button } from '../components/ui/Button';
 import {
     CAMPOS, useConfigStore, useConfig, origenDe,
     supabaseConfigurado, googleMapsConfigurado, emailConfigurado,
-    type AppConfig, type ClaveConfig,
+    instalacionActiva, nombreApp,
+    type AppConfig, type ClaveConfig, type Origen,
 } from '../lib/config';
 
 const VACIA: AppConfig = {
@@ -21,6 +22,21 @@ const VACIA: AppConfig = {
 const enmascarar = (valor: string) => {
     if (valor.length <= 12) return '•'.repeat(valor.length);
     return `${valor.slice(0, 6)}${'•'.repeat(14)}${valor.slice(-4)}`;
+};
+
+/** Cómo se etiqueta cada origen en el formulario. */
+const ETIQUETA_ORIGEN: Record<Origen, string> = {
+    instalacion: 'fijado por la instalación',
+    usuario: 'guardado aquí',
+    entorno: 'viene con la app',
+    ninguno: 'sin definir',
+};
+
+const COLOR_ORIGEN: Record<Origen, string> = {
+    instalacion: 'text-emerald-400',
+    usuario: 'text-cyan-400',
+    entorno: 'text-purple-400',
+    ninguno: 'text-white/25',
 };
 
 const Estado = ({ ok, icono, titulo, detalle }: {
@@ -124,6 +140,20 @@ export const SettingsPage = () => {
                     />
                 </section>
 
+                {instalacionActiva() && (
+                    <div className="flex gap-3 p-4 mb-8 rounded-xl border border-emerald-500/40 bg-emerald-500/5">
+                        <Check className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                        <div className="text-xs text-emerald-100/80 leading-relaxed">
+                            <p className="font-black uppercase tracking-widest text-emerald-400 mb-1">
+                                Copia preconfigurada{nombreApp() ? ` — ${nombreApp()}` : ''}
+                            </p>
+                            Esta instalación trae sus credenciales en el fichero <code>config.json</code>
+                            del servidor, así que los empleados no tienen que introducir nada. Los campos
+                            marcados abajo los define quien la instaló y no se pueden cambiar desde aquí.
+                        </div>
+                    </div>
+                )}
+
                 {!supabaseConfigurado() && (
                     <div className="flex gap-3 p-4 mb-8 rounded-xl border border-red-500/40 bg-red-500/5">
                         <ShieldAlert className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
@@ -140,6 +170,9 @@ export const SettingsPage = () => {
                         const origen = origenDe(campo.clave);
                         const actual = configEfectiva[campo.clave];
                         const visible = visibles[campo.clave] === true;
+                        // Lo que fija la instalación no se edita: en una copia
+                        // entregada a un cliente, nadie debe poder desviarla.
+                        const bloqueado = origen === 'instalacion';
 
                         return (
                             <div key={campo.clave} className="space-y-2">
@@ -148,10 +181,8 @@ export const SettingsPage = () => {
                                         {campo.etiqueta}
                                         {campo.obligatorio && <span className="text-red-500 ml-1">*</span>}
                                     </label>
-                                    <span className={`text-[10px] uppercase tracking-widest font-bold ${origen === 'usuario' ? 'text-cyan-400'
-                                        : origen === 'entorno' ? 'text-purple-400' : 'text-white/25'}`}>
-                                        {origen === 'usuario' ? 'guardado aquí'
-                                            : origen === 'entorno' ? 'viene con la app' : 'sin definir'}
+                                    <span className={`text-[10px] uppercase tracking-widest font-bold ${COLOR_ORIGEN[origen]}`}>
+                                        {ETIQUETA_ORIGEN[origen]}
                                     </span>
                                 </div>
 
@@ -160,14 +191,17 @@ export const SettingsPage = () => {
                                         type={campo.secreto && !visible ? 'password' : 'text'}
                                         value={borrador[campo.clave]}
                                         onChange={(e) => cambiar(campo.clave, e.target.value)}
+                                        disabled={bloqueado}
                                         placeholder={actual
                                             ? (campo.secreto ? enmascarar(actual) : actual)
                                             : campo.marcador}
                                         autoComplete="off"
                                         spellCheck={false}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 text-sm font-mono
+                                        className={`w-full bg-white/5 border rounded-xl px-4 py-3 pr-12 text-sm font-mono
                                                    text-white placeholder:text-white/25 outline-none transition-all
-                                                   focus:border-cyan-500/50 focus:bg-white/10"
+                                                   ${bloqueado
+                                                       ? 'border-emerald-500/20 opacity-60 cursor-not-allowed'
+                                                       : 'border-white/10 focus:border-cyan-500/50 focus:bg-white/10'}`}
                                     />
                                     {campo.secreto && (
                                         <button

@@ -1,0 +1,47 @@
+{
+  "_instrucciones": [
+    "Renombra este fichero a config.json y déjalo junto a index.html.",
+    "La aplicación lo lee al arrancar, antes de pintar nada.",
+    "Con él, los empleados entran solo con su PIN: no tienen que introducir",
+    "ninguna credencial en su navegador.",
+    "",
+    "Si NO existe config.json, la aplicación pide los datos en /configuracion",
+    "y los guarda en el navegador de cada persona. Eso sirve para una demo,",
+    "pero no para una instalación con empleados.",
+    "",
+    "Borra las claves que no uses: Google Maps y EmailJS son opcionales."
+  ],
+
+  "appName": "Nombre del cliente",
+
+  "supabaseUrl": "https://xxxxxxxxxxxx.supabase.co",
+  "supabaseAnonKey": "PEGA_AQUI_LA_CLAVE_ANON",
+
+  "googleMapsApiKey": "",
+  "emailjsPublicKey": "",
+  "emailjsServiceId": "",
+  "emailjsTemplateWelcomeId": "",
+  "emailjsTemplateResetId": "",
+
+  "showDemoAccounts": false,
+
+  "_variasEmpresasEnUnMismoDespliegue": [
+    "Si sirves varios dominios desde una sola copia de la aplicación, usa",
+    "'tenants' en lugar de las claves de arriba. Se elige por dominio:",
+    "",
+    "{",
+    "  \"tenants\": {",
+    "    \"cliente1.geohacker.app\": {",
+    "      \"appName\": \"Logistica Norte\",",
+    "      \"supabaseUrl\": \"https://aaaa.supabase.co\",",
+    "      \"supabaseAnonKey\": \"...\"",
+    "    },",
+    "    \"cliente2.geohacker.app\": {",
+    "      \"appName\": \"Servicios Sur\",",
+    "      \"supabaseUrl\": \"https://bbbb.supabase.co\",",
+    "      \"supabaseAnonKey\": \"...\"",
+    "    }",
+    "  }",
+    "}"
+  ]
+}

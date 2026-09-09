@@ -92,6 +92,104 @@ repositorio, descomenta el bloque `env` del paso *Build*.
 
 ---
 
+## Entregar una copia a cada cliente
+
+Por defecto la aplicación pide las credenciales en `/configuracion` y las
+guarda en el navegador. Eso vale para una demo, pero **no para una instalación
+con empleados**: cada uno tendría que introducirlas en su propio móvil.
+
+La solución es un fichero `config.json` junto a `index.html`. La aplicación lo
+lee al arrancar, antes de pintar nada, y sus valores mandan sobre cualquier cosa
+guardada en el navegador. Los empleados solo teclean su PIN.
+
+Parte de [`public/config.example.json`](public/config.example.json):
+
+```json
+{
+  "appName": "Logística Norte",
+  "supabaseUrl": "https://xxxx.supabase.co",
+  "supabaseAnonKey": "...",
+  "showDemoAccounts": false
+}
+```
+
+`appName` aparece bajo el logotipo, para que cada cliente vea su nombre.
+
+### Opción 1 — un dominio por cliente, un solo despliegue
+
+Sirves la misma copia en varios dominios y el fichero elige según cuál se abra:
+
+```json
+{
+  "tenants": {
+    "cliente1.geohacker.app": { "appName": "Logística Norte", "supabaseUrl": "...", "supabaseAnonKey": "..." },
+    "cliente2.geohacker.app": { "appName": "Servicios Sur",  "supabaseUrl": "...", "supabaseAnonKey": "..." }
+  }
+}
+```
+
+Cada cliente tiene su propia base de datos y su propio dominio, pero tú
+mantienes **un solo despliegue**. Es la opción recomendada: una corrección de
+errores llega a todos a la vez.
+
+Necesita un alojamiento que admita varios dominios apuntando al mismo sitio
+(Cloudflare Pages, Netlify, o tu propio nginx). GitHub Pages no sirve: solo
+admite un dominio por repositorio.
+
+### Opción 2 — el cliente lo instala en su VPS
+
+Para quien exija tener la aplicación en su propia máquina:
+
+```bash
+npm ci && npm run build          # genera dist/
+scp -r dist/* usuario@vps:/var/www/geohacker/
+```
+
+En el VPS, crea `/var/www/geohacker/config.json` con sus credenciales y sirve
+la carpeta con nginx:
+
+```nginx
+server {
+    listen 80;
+    server_name app.sucliente.com;
+    root /var/www/geohacker;
+    index index.html;
+
+    # La aplicación resuelve las rutas en el navegador: todo lo que no sea un
+    # fichero real tiene que devolver index.html.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # El config.json no debe quedarse cacheado tras un cambio de credenciales.
+    location = /config.json {
+        add_header Cache-Control "no-store";
+    }
+}
+```
+
+Después, `certbot --nginx -d app.sucliente.com` para el HTTPS.
+
+El VPS solo sirve ficheros estáticos: no hace falta Node, ni base de datos, ni
+nada corriendo. La base de datos sigue siendo un proyecto de Supabase del
+cliente, sobre el que ejecuta [`db/schema.sql`](db/schema.sql).
+
+> **Lo que cuesta esta opción:** cada corrección hay que llevarla a cada VPS.
+> Con varios clientes eso pesa, y un fallo de seguridad te deja tantos sitios
+> vulnerables como instalaciones tengas. Úsala solo cuando el cliente lo exija.
+
+### Aislamiento entre clientes
+
+Hay dos niveles y conviene no confundirlos:
+
+- **Una base de datos por cliente** (las opciones de arriba): separación total.
+- **Una sola base de datos compartida**: también funciona, porque el esquema
+  aísla por `admin_id` y ningún administrador ve empleados de otro. Pero el
+  Administrador Maestro sí ve a todos, así que solo vale si ese papel lo
+  ocupas tú y tus clientes lo aceptan.
+
+---
+
 ## Base de datos
 
 **[`db/schema.sql`](db/schema.sql) es la única fuente de verdad.** Es idempotente:
@@ -182,6 +280,8 @@ db/
   set_master_pin.sql  Plantilla para cambiar el PIN maestro
 scripts/
   build-demo-sql.js   Genera demo_full.sql (npm run db:demo)
+public/
+  config.example.json Plantilla de config.json para instalaciones
 src/
   lib/
     config.ts         Configuración en tiempo de ejecución (claves del usuario)

@@ -12,7 +12,7 @@ const MatrixRain = React.lazy(() => import('../components/Effects/MatrixRain').t
 const TerminalCodeEffect = React.lazy(() => import('../components/Effects/TerminalCodeEffect').then(m => ({ default: m.TerminalCodeEffect })));
 import { playAlarm } from '../utils/audio';
 import { DemoAccounts } from '../components/DemoAccounts';
-import { useConfigStore, supabaseConfigurado } from '../lib/config';
+import { useMostrarCuentasDemo, supabaseConfigurado, nombreApp } from '../lib/config';
 
 export const LoginPage = () => {
     const [isRegistering, setIsRegistering] = useState(false);
@@ -35,8 +35,10 @@ export const LoginPage = () => {
     const [alarmTriggered, setAlarmTriggered] = useState(false);
     const [clickState, setClickState] = useState({ count: 0, lastClick: 0 });
     const [loadEffects, setLoadEffects] = useState(false);
-    const mostrarDemo = useConfigStore((s) => s.showDemoAccounts);
+    const mostrarDemo = useMostrarCuentasDemo();
     const hayConexion = supabaseConfigurado();
+    // Nombre del cliente en las copias entregadas (config.json → appName).
+    const marca = nombreApp();
 
     useEffect(() => {
         // Retrasar efectos pesados ligeramente para priorizar el renderizado del formulario
@@ -329,6 +331,11 @@ export const LoginPage = () => {
                                         </p>
                                         <div className="h-px w-8 bg-gradient-to-l from-transparent to-green-500/50" />
                                     </div>
+                                    {marca && (
+                                        <p className="text-[11px] text-white/45 tracking-[0.3em] uppercase font-bold pt-1">
+                                            {marca}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 

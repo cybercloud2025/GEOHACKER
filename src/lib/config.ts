@@ -4,14 +4,19 @@ import { persist } from 'zustand/middleware';
 /**
  * Configuración en tiempo de ejecución.
  *
- * Antes las claves se leían de `import.meta.env` y quedaban incrustadas en el
- * bundle al compilar: cualquiera que abriera el sitio usaba las credenciales de
- * quien lo hubiera construido. Ahora cada visitante puede introducir las suyas
- * desde /configuracion y se guardan solo en su navegador.
+ * Hay tres orígenes posibles, en este orden de prioridad:
  *
- * El orden de prioridad es: lo que el usuario haya guardado > variables de
- * entorno > vacío. Así una instalación que ya tenga su `.env` sigue funcionando
- * igual, y un build sin `.env` no contiene ningún dato de nadie.
+ *   1. INSTALACIÓN  — un `config.json` servido junto a la aplicación. Es lo que
+ *      permite entregar una copia a cada cliente: sus empleados entran con su
+ *      PIN y ya está, sin teclear credenciales en cada móvil.
+ *   2. USUARIO      — lo que se guarde en /configuracion, en el navegador.
+ *      Sirve para la demo y para montajes manuales.
+ *   3. ENTORNO      — variables VITE_* del build. Vacías por defecto, para que
+ *      la aplicación publicada no contenga credenciales de nadie.
+ *
+ * La instalación gana sobre el navegador a propósito: en una copia entregada a
+ * un cliente, un `localStorage` viejo no debe poder desviar la aplicación a
+ * otra base de datos.
  */
 export interface AppConfig {
     supabaseUrl: string;
@@ -24,8 +29,15 @@ export interface AppConfig {
 }
 
 export type ClaveConfig = keyof AppConfig;
+export type Origen = 'instalacion' | 'usuario' | 'entorno' | 'ninguno';
 
 const texto = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+
+const CLAVES: ClaveConfig[] = [
+    'supabaseUrl', 'supabaseAnonKey', 'googleMapsApiKey',
+    'emailjsPublicKey', 'emailjsServiceId',
+    'emailjsTemplateWelcomeId', 'emailjsTemplateResetId',
+];
 
 /** Valores que vienen del build. Estarán vacíos si no hay `.env`. */
 const DESDE_ENTORNO: AppConfig = {
@@ -40,8 +52,78 @@ const DESDE_ENTORNO: AppConfig = {
 
 const DEMO_POR_DEFECTO = texto(import.meta.env.VITE_DEMO_MODE) === 'true';
 
+// ---------------------------------------------------------------------------
+// Configuración de instalación (config.json)
+// ---------------------------------------------------------------------------
+
+/** Bloque de credenciales, más un nombre opcional para personalizar la copia. */
+interface BloqueInstalacion extends Partial<AppConfig> {
+    appName?: string;
+    showDemoAccounts?: boolean;
+}
+
+/**
+ * Formato de config.json. Admite dos modos:
+ *
+ *   Una sola copia (un cliente, un despliegue):
+ *     { "supabaseUrl": "...", "supabaseAnonKey": "..." }
+ *
+ *   Varias copias en un mismo despliegue, una por dominio:
+ *     { "tenants": { "cliente1.geohacker.app": { "supabaseUrl": "..." } } }
+ */
+interface FicheroInstalacion extends BloqueInstalacion {
+    tenants?: Record<string, BloqueInstalacion>;
+}
+
+let DESDE_INSTALACION: BloqueInstalacion = {};
+let instalacionCargada = false;
+
+/**
+ * Lee config.json antes de que arranque la interfaz. Que no exista es el caso
+ * normal en la demo, así que un 404 no es un error.
+ */
+export const cargarConfigInstalacion = async (): Promise<void> => {
+    if (instalacionCargada) return;
+    instalacionCargada = true;
+
+    try {
+        const url = `${import.meta.env.BASE_URL}config.json`;
+        const respuesta = await fetch(url, { cache: 'no-store' });
+        if (!respuesta.ok) return;
+
+        // Muchos alojamientos de aplicaciones de una sola página responden a un
+        // fichero inexistente con index.html y HTTP 200 en vez de un 404. Sin
+        // esta comprobación intentaríamos interpretar HTML como configuración.
+        if (!(respuesta.headers.get('content-type') || '').includes('json')) return;
+
+        const datos = (await respuesta.json()) as FicheroInstalacion;
+        if (!datos || typeof datos !== 'object' || Array.isArray(datos)) return;
+
+        // Si hay varios clientes en el mismo despliegue, manda el dominio.
+        const porDominio = datos.tenants?.[window.location.hostname];
+        const { tenants: _ignorado, ...raiz } = datos;
+        void _ignorado;
+
+        DESDE_INSTALACION = porDominio ? { ...raiz, ...porDominio } : raiz;
+    } catch {
+        // Fichero ausente o mal formado: se sigue con navegador y entorno.
+        DESDE_INSTALACION = {};
+    }
+};
+
+/** ¿Esta copia trae su configuración puesta por quien la instaló? */
+export const instalacionActiva = (): boolean =>
+    CLAVES.some((c) => texto(DESDE_INSTALACION[c]));
+
+/** Nombre para personalizar la copia de cada cliente. */
+export const nombreApp = (): string => texto(DESDE_INSTALACION.appName);
+
+// ---------------------------------------------------------------------------
+// Preferencias del navegador
+// ---------------------------------------------------------------------------
+
 interface ConfigState {
-    /** Solo lo que el usuario ha introducido. Vacío = usar el valor del entorno. */
+    /** Solo lo que el usuario ha introducido. Vacío = usar otro origen. */
     overrides: Partial<AppConfig>;
     /** Muestra las cuentas de prueba bajo el formulario de acceso. */
     showDemoAccounts: boolean;
@@ -62,7 +144,7 @@ export const useConfigStore = create<ConfigState>()(
                     (Object.keys(valores) as ClaveConfig[]).forEach((clave) => {
                         const valor = texto(valores[clave]);
                         // Un campo vacío borra el override y devuelve el control
-                        // al valor del entorno, si lo hubiera.
+                        // al valor de la instalación o del entorno.
                         if (valor) fusion[clave] = valor;
                         else delete fusion[clave];
                     });
@@ -80,14 +162,23 @@ export const useConfigStore = create<ConfigState>()(
     )
 );
 
-/** Configuración efectiva: lo guardado por el usuario o, en su defecto, el entorno. */
+// ---------------------------------------------------------------------------
+// Configuración efectiva
+// ---------------------------------------------------------------------------
+
 export const getConfig = (): AppConfig => {
     const { overrides } = useConfigStore.getState();
     const resultado = { ...DESDE_ENTORNO };
-    (Object.keys(DESDE_ENTORNO) as ClaveConfig[]).forEach((clave) => {
-        const valor = texto(overrides[clave]);
-        if (valor) resultado[clave] = valor;
+
+    CLAVES.forEach((clave) => {
+        const usuario = texto(overrides[clave]);
+        if (usuario) resultado[clave] = usuario;
+
+        // La instalación tiene la última palabra.
+        const instalacion = texto(DESDE_INSTALACION[clave]);
+        if (instalacion) resultado[clave] = instalacion;
     });
+
     return resultado;
 };
 
@@ -98,11 +189,25 @@ export const useConfig = (): AppConfig => {
 };
 
 /** De dónde sale cada valor, para poder explicarlo en la pantalla de ajustes. */
-export const origenDe = (clave: ClaveConfig): 'usuario' | 'entorno' | 'ninguno' => {
-    const { overrides } = useConfigStore.getState();
-    if (texto(overrides[clave])) return 'usuario';
+export const origenDe = (clave: ClaveConfig): Origen => {
+    if (texto(DESDE_INSTALACION[clave])) return 'instalacion';
+    if (texto(useConfigStore.getState().overrides[clave])) return 'usuario';
     if (DESDE_ENTORNO[clave]) return 'entorno';
     return 'ninguno';
+};
+
+/** ¿Debe mostrarse el panel de cuentas de prueba? */
+export const mostrarCuentasDemo = (): boolean => {
+    if (typeof DESDE_INSTALACION.showDemoAccounts === 'boolean') {
+        return DESDE_INSTALACION.showDemoAccounts;
+    }
+    return useConfigStore.getState().showDemoAccounts;
+};
+
+/** Versión suscrita de mostrarCuentasDemo, para usar dentro de componentes. */
+export const useMostrarCuentasDemo = (): boolean => {
+    useConfigStore((s) => s.showDemoAccounts);
+    return mostrarCuentasDemo();
 };
 
 /** Sin esto la aplicación no puede hablar con la base de datos. */
