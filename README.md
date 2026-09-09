@@ -1,3 +1,15 @@
+> ## ⚠️ Rama archivada
+>
+> Esta rama explora una autenticación con **JWT firmado por una Edge Function**.
+> Se ha descartado. El desarrollo continúa en **`master`**, que es la rama por
+> defecto y la que se despliega.
+>
+> Se conserva bajo la etiqueta `archivo/jwt-edge-function`, que explica el
+> porqué de la decisión.
+>
+> **No trabajes aquí.** Le faltan correcciones que `master` ya tiene y conserva
+> los scripts SQL sueltos de la raíz, algunos peligrosos.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
