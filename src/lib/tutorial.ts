@@ -30,10 +30,10 @@ export const ETIQUETA_PUBLICO: Record<PublicoTutorial, string> = {
 };
 
 export const COLOR_PUBLICO: Record<PublicoTutorial, string> = {
-    todos: 'border-white/20 text-white/60 bg-white/5',
-    empleado: 'border-cyan-500/40 text-cyan-400 bg-cyan-500/5',
-    admin: 'border-purple-500/40 text-purple-400 bg-purple-500/5',
-    maestro: 'border-red-500/40 text-red-400 bg-red-500/5',
+    todos: 'border-white/35 text-white/85 bg-white/10',
+    empleado: 'border-cyan-400/60 text-cyan-300 bg-cyan-400/10',
+    admin: 'border-purple-400/60 text-purple-300 bg-purple-400/10',
+    maestro: 'border-red-400/60 text-red-300 bg-red-400/10',
 };
 
 export const SECCIONES: SeccionTutorial[] = [
