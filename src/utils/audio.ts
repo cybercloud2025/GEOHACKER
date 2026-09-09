@@ -1,5 +1,6 @@
 export const playAlarm = (durationMs: number = 3000) => {
-    const AudioContext = window.AudioContext || (window as Window & { webkitAudioContext?: typeof window.AudioContext }).webkitAudioContext;
+    const AudioContext = window.AudioContext
+        || (window as { webkitAudioContext?: typeof window.AudioContext }).webkitAudioContext;
     if (!AudioContext) return;
 
     const ctx = new AudioContext();

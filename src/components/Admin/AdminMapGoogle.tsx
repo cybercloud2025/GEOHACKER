@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
+import { getGoogleMaps } from '../../lib/googleMaps';
 
 interface LocationData {
     lat: number;
@@ -20,8 +21,7 @@ const MapUpdater = ({ start, end }: { start: LocationData | null, end: LocationD
     useEffect(() => {
         if (!map) return;
 
-        // Access google from window to avoid TS errors if types aren't perfect
-        const g = (window as Window & { google?: typeof google }).google;
+        const g = getGoogleMaps();
         if (!g) return;
 
         const bounds = new g.maps.LatLngBounds();

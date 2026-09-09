@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Play, Square, LogOut, Coffee, Crosshair, MapPin, Shield, AlertTriangle, Monitor } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -9,6 +9,21 @@ import { TrackerMapGoogle } from '../components/Tracker/TrackerMapGoogle';
 import { useTimeStore } from '../stores/useTimeStore';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useLocationTracker } from '../hooks/useLocationTracker';
+
+/**
+ * Cierre de sesión por inactividad.
+ *
+ * Estaba en 20 segundos: en cuanto el empleado fichaba la salida, la app lo
+ * echaba antes de que le diera tiempo a revisar nada. Cinco minutos siguen
+ * protegiendo un dispositivo compartido sin estorbar.
+ */
+const AUTO_LOGOUT_SEGUNDOS = 5 * 60;
+
+const formatearCuentaAtras = (segundos: number) => {
+    const min = Math.floor(segundos / 60);
+    const seg = segundos % 60;
+    return `${min}:${seg.toString().padStart(2, '0')}`;
+};
 
 export const TrackerPage = () => {
     const { employee, logout } = useAuthStore();
@@ -26,7 +41,7 @@ export const TrackerPage = () => {
     const formattedStartTime = startTime ? new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
     // Manual Locate Handler
-    const handleLocate = () => {
+    const handleLocate = useCallback(() => {
         if (!navigator.geolocation) return;
 
         const handleCoords = (pos: GeolocationPosition) => {
@@ -43,38 +58,35 @@ export const TrackerPage = () => {
             () => navigator.geolocation.getCurrentPosition(handleCoords, () => { }, { enableHighAccuracy: false, timeout: 10000 }),
             { enableHighAccuracy: true, timeout: 5000 }
         );
-    };
+    }, [updateLocation]);
 
     useEffect(() => {
         syncStatus();
         handleLocate();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [syncStatus, handleLocate]);
 
-    // Auto-logout with visual countdown
-    const [timeLeft, setTimeLeft] = useState(20);
-    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    // Cuenta atrás de cierre de sesión mientras no hay turno abierto.
+    const [timeLeft, setTimeLeft] = useState(AUTO_LOGOUT_SEGUNDOS);
 
     useEffect(() => {
-        if (status === 'idle') {
-            setTimeLeft(20);
-            timerRef.current = setInterval(() => {
-                setTimeLeft((prev) => {
-                    if (prev <= 1) {
-                        if (timerRef.current) clearInterval(timerRef.current);
-                        logout();
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        } else {
-            if (timerRef.current) clearInterval(timerRef.current);
-            setTimeLeft(20);
-        }
+        if (status !== 'idle') return;
+
+        // Se calcula contra una marca de tiempo, no restando 1 en cada tick:
+        // así no se desfasa si el navegador ralentiza los temporizadores.
+        const limite = Date.now() + AUTO_LOGOUT_SEGUNDOS * 1000;
+
+        const id = setInterval(() => {
+            const restante = Math.max(0, Math.round((limite - Date.now()) / 1000));
+            setTimeLeft(restante);
+            if (restante <= 0) {
+                clearInterval(id);
+                void logout();
+            }
+        }, 1000);
 
         return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
+            clearInterval(id);
+            setTimeLeft(AUTO_LOGOUT_SEGUNDOS);
         };
     }, [status, logout]);
 
@@ -198,7 +210,7 @@ export const TrackerPage = () => {
                             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-red-400 to-red-600 animate-pulse" />
                             <span className="text-[10px] font-black text-red-400 tracking-[0.4em] uppercase mb-1 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]">TERMINACIÓN DE SESIÓN</span>
                             <div className="text-6xl font-mono text-white font-bold tracking-tighter mb-1">
-                                {timeLeft.toString().padStart(2, '0')}<span className="text-red-600 animate-pulse">s</span>
+                                {formatearCuentaAtras(timeLeft)}
                             </div>
                         </motion.div>
                     )}

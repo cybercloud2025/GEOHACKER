@@ -35,16 +35,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # El build se publica SIN credenciales: cada visitante introduce las
+      # suyas en /configuracion y se guardan solo en su navegador. Asi el sitio
+      # publicado no contiene ningun dato personal de quien lo despliega.
+      #
+      # Para volver a un despliegue con credenciales fijas, descomenta el
+      # bloque `env` de abajo y define los secretos en
+      # Settings -> Secrets and variables -> Actions.
       - name: Build
         run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
-          VITE_EMAILJS_PUBLIC_KEY: ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
-          VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
-          VITE_EMAILJS_TEMPLATE_WELCOME_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_WELCOME_ID }}
-          VITE_EMAILJS_TEMPLATE_RESET_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_RESET_ID }}
+          VITE_DEMO_MODE: "true"
+          # VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          # VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          # VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          # VITE_EMAILJS_PUBLIC_KEY: ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
+          # VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
+          # VITE_EMAILJS_TEMPLATE_WELCOME_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_WELCOME_ID }}
+          # VITE_EMAILJS_TEMPLATE_RESET_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_RESET_ID }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Building2, CreditCard, Mail, Hash, Lock } from 'lucide-react';
 
@@ -27,14 +27,16 @@ export const SearchAdminModal = ({ isOpen, onClose, admins }: SearchAdminModalPr
     const [foundAdmin, setFoundAdmin] = useState<AdminUser | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setSearchTerm('');
-            setFoundAdmin(null);
-            setHasSearched(false);
-        }
-    }, [isOpen]);
+    // Al abrirse, el formulario vuelve a cero. Se ajusta durante el render
+    // (patrón oficial de React para reaccionar a un cambio de prop) en vez de
+    // con un efecto, que provocaba un render en cascada.
+    const [estabaAbierto, setEstabaAbierto] = useState(isOpen);
+    if (isOpen !== estabaAbierto) {
+        setEstabaAbierto(isOpen);
+        setSearchTerm('');
+        setFoundAdmin(null);
+        setHasSearched(false);
+    }
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { rpc } from '../../lib/api';
+import { useAuthStore } from '../../stores/useAuthStore';
 import { MapPin, Clock, Battery, Zap, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 
 /* --- GOOGLE MAPS IMPORTS --- */
 import { Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps';
 import { GoogleMapWrapper } from '../GoogleMap/GoogleMapWrapper';
+import { getGoogleMaps } from '../../lib/googleMaps';
 
 const COLORS = ['#00f7ff', '#ff00ff', '#00ff00', '#ffff00', '#ff4b4b', '#7b2cbf'];
 const getUserColor = (id: string) => {
@@ -37,9 +39,7 @@ const MapBoundsFitter = ({ locations }: { locations: ActiveUserLocation[] }) => 
     useEffect(() => {
         if (!map || locations.length === 0) return;
 
-        // Access google from window to avoid TS errors
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const g = (window as any).google;
+        const g = getGoogleMaps();
         if (!g) return;
 
         const bounds = new g.maps.LatLngBounds();
@@ -56,7 +56,7 @@ const MapBoundsFitter = ({ locations }: { locations: ActiveUserLocation[] }) => 
             map.fitBounds(bounds);
             // Optional: Adjust zoom if too close or only 1 marker
             const listener = g.maps.event.addListenerOnce(map, "idle", () => {
-                if ((map.getZoom() ?? 0) > 16) map.setZoom(16);
+                if (map.getZoom() > 16) map.setZoom(16);
             });
             return () => g.maps.event.removeListener(listener);
         }
@@ -90,60 +90,27 @@ export const LiveUserMap = () => {
         return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
+    /**
+     * Una sola llamada para todo el mapa.
+     *
+     * Antes se pedían los turnos abiertos y después se lanzaba una consulta por
+     * cada empleado para buscar su última posición: N+1 consultas cada 20
+     * segundos. El RPC lo resuelve con un LATERAL en una única consulta, y
+     * además acota el resultado a los empleados de esta empresa.
+     */
     const fetchLiveLocations = async () => {
         try {
-            // STEP 1: Get all active time entries directly (joining employee data)
-            const { data: activeShifts } = await supabase
-                .from('time_entries')
-                .select('id, employee_id, start_time, status, employees(first_name, last_name, role, avatar_url)')
-                .is('end_time', null);
+            const token = useAuthStore.getState().token;
+            if (!token) return;
 
-            if (!activeShifts || activeShifts.length === 0) {
-                setLocations([]);
-                return;
-            }
+            const data = await rpc<ActiveUserLocation[]>('admin_get_live_locations', {
+                p_token: token,
+            });
 
-            // Process active shifts
-            const filteredShifts = activeShifts;
-
-            if (filteredShifts.length === 0) {
-                setLocations([]);
-                return;
-            }
-
-            // STEP 2: For each active shift, fetch the latest known location
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const results = await Promise.all(filteredShifts.map(async (shift: any) => {
-                const { data: latestLoc } = await supabase
-                    .from('locations')
-                    .select('*')
-                    .eq('time_entry_id', shift.id)
-                    .order('timestamp', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-
-                return {
-                    employee_id: shift.employee_id,
-                    first_name: shift.employees.first_name,
-                    last_name: shift.employees.last_name,
-                    latitude: latestLoc?.latitude || 0,
-                    longitude: latestLoc?.longitude || 0,
-                    accuracy: latestLoc?.accuracy || 0,
-                    heading: latestLoc?.heading || null,
-                    speed: latestLoc?.speed || null,
-                    battery_level: latestLoc?.battery_level || null,
-                    last_ping: latestLoc?.timestamp || shift.start_time,
-                    shift_start_time: shift.start_time,
-                    status: shift.status,
-                    has_gps: !!latestLoc,
-                    avatar_url: shift.employees.avatar_url
-                } as ActiveUserLocation;
-            }));
-
-            setLocations(results);
+            setLocations(data ?? []);
             setLastRefresh(new Date());
-        } catch (err: unknown) {
-            console.error('Error fetching live locations:', err);
+        } catch (err) {
+            console.error('Error al cargar las posiciones en vivo:', err);
         } finally {
             setLoading(false);
         }

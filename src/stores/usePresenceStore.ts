@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabase';
+import { getSupabase } from '../lib/supabase';
 import { useAuthStore } from './useAuthStore';
 
 interface PresenceState {
@@ -19,7 +19,7 @@ export const usePresenceStore = create<PresenceState>((set) => ({
         const { employee, isAuthenticated } = useAuthStore.getState();
         if (!isAuthenticated || !employee) return () => { };
 
-        const channel = supabase.channel('online-users');
+        const channel = getSupabase().channel('online-users');
 
         channel
             .on('presence', { event: 'sync' }, () => {

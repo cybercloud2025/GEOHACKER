@@ -1,30 +1,46 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { supabase } from '../lib/supabase';
+import { rpc } from '../lib/api';
 import { useAuthStore } from './useAuthStore';
 
-interface Coordinates {
+export interface Coordinates {
     latitude: number;
     longitude: number;
     accuracy: number;
     timestamp: number;
 }
 
+type Estado = 'idle' | 'active' | 'break' | 'completed';
+
+interface EstadoServidor {
+    status: Estado;
+    current_shift_id?: string | null;
+    current_break_id?: string | null;
+    start_time?: string | null;
+}
+
 interface TimeState {
-    status: 'idle' | 'active' | 'break' | 'completed';
+    status: Estado;
     currentShiftId: string | null;
     currentBreakId: string | null;
     lastKnownLocation: Coordinates | null;
     startTime: string | null;
 
-    // Acciones
     clockIn: () => Promise<void>;
     clockOut: (notes?: string) => Promise<void>;
     startBreak: (reason: string) => Promise<void>;
     endBreak: () => Promise<void>;
     updateLocation: (coords: Coordinates) => void;
     syncStatus: () => Promise<void>;
+    reset: () => void;
 }
+
+/** El turno se deduce del token en el servidor: el cliente ya no lo elige. */
+const token = () => useAuthStore.getState().token;
+
+/** Coordenadas en el formato JSONB que espera la base de datos. */
+const comoJson = (c: Coordinates | null) =>
+    c ? { lat: c.latitude, lng: c.longitude, accuracy: c.accuracy } : null;
 
 export const useTimeStore = create<TimeState>()(
     persist(
@@ -37,135 +53,69 @@ export const useTimeStore = create<TimeState>()(
 
             updateLocation: (coords) => set({ lastKnownLocation: coords }),
 
+            reset: () => set({
+                status: 'idle', currentShiftId: null, currentBreakId: null, startTime: null,
+            }),
+
+            // El servidor es la fuente de verdad del turno abierto.
             syncStatus: async () => {
-                const { employee } = useAuthStore.getState();
-                if (!employee) return;
-
-                const { data } = await supabase.rpc('get_active_shift', {
-                    p_employee_id: employee.id
-                });
-
-                const shift = Array.isArray(data) ? data[0] : null;
-                if (shift) {
+                if (!token()) return;
+                try {
+                    const data = await rpc<EstadoServidor>('get_my_status', { p_token: token() });
+                    if (!data || data.status === 'idle') {
+                        get().reset();
+                        return;
+                    }
                     set({
-                        status: shift.status as 'active' | 'break',
-                        currentShiftId: shift.id,
-                        startTime: shift.start_time
+                        status: data.status,
+                        currentShiftId: data.current_shift_id ?? null,
+                        currentBreakId: data.current_break_id ?? null,
+                        startTime: data.start_time ?? null,
                     });
+                } catch (e) {
+                    console.error('Error al sincronizar el estado del turno:', e);
                 }
             },
 
             clockIn: async () => {
-                const { employee } = useAuthStore.getState();
-                if (!employee) throw new Error('No employee logged in');
+                // clock_in es idempotente en servidor: si ya hay turno abierto
+                // devuelve ese mismo id en vez de fallar.
+                const shiftId = await rpc<string>('clock_in', {
+                    p_token: token(),
+                    p_location: comoJson(get().lastKnownLocation),
+                });
 
-                const location = get().lastKnownLocation;
-
-                try {
-                    const { data: shiftId, error } = await supabase.rpc('clock_in', {
-                        p_employee_id: employee.id,
-                        p_location: location
-                    });
-
-                    if (error) {
-                        // RECUPERACIÓN INTELIGENTE: Si la BD dice que ya tenemos un turno activo, sincronizamos el estado local
-                        if (error.message && error.message.includes('already has an active shift')) {
-
-                            set({ status: 'active' });
-                            // No tenemos el ID, pero clockOut lo maneja por employee_id, así que está bien.
-                            return;
-                        }
-                        throw error;
-                    }
-
-                    set({
-                        status: 'active',
-                        currentShiftId: shiftId,
-                        startTime: new Date().toISOString()
-                    });
-                } catch (e: unknown) {
-                    const errorMsg = e instanceof Error ? e.message : 'Error de conexión con la base de datos';
-                    console.error('ClockIn Error:', e);
-                    throw new Error(`Error al fichar: ${errorMsg}. Revisa tu conexión o el estado de RLS.`);
-                }
+                set({
+                    status: 'active',
+                    currentShiftId: shiftId,
+                    currentBreakId: null,
+                    startTime: new Date().toISOString(),
+                });
             },
 
             clockOut: async (notes) => {
-                const { employee } = useAuthStore.getState();
-                if (!employee) throw new Error('No employee logged in');
-
-                const location = get().lastKnownLocation;
-
-                const { error } = await supabase.rpc('clock_out', {
-                    p_employee_id: employee.id,
-                    p_location: location,
-                    p_notes: notes
+                // También idempotente: si el turno ya estaba cerrado, no es error.
+                await rpc<void>('clock_out', {
+                    p_token: token(),
+                    p_location: comoJson(get().lastKnownLocation),
+                    p_notes: notes ?? null,
                 });
 
-                if (error) {
-                    // AUTO-FIX: Si el backend dice "No active shift", confiamos y reseteamos el estado local
-                    if (error.message && error.message.includes('No active shift found')) {
-                        console.warn('⚠️ Desincronización detectada: La base de datos ya cerró el turno. Reseteando local.');
-                        set({
-                            status: 'idle',
-                            currentShiftId: null,
-                            startTime: null
-                        });
-                        return;
-                    }
-                    throw error;
-                }
-
-                set({
-                    status: 'idle',
-                    currentShiftId: null,
-                    startTime: null
-                });
+                get().reset();
             },
 
             startBreak: async (reason) => {
-                const { currentShiftId } = get();
-                const employeeId = useAuthStore.getState().employee?.id;
-                if (!currentShiftId) throw new Error("No hay turno activo para pausar");
-                if (!employeeId) throw new Error("No autenticado");
-
-                try {
-                    const { data, error } = await supabase.rpc('start_break', {
-                        p_employee_id: employeeId,
-                        p_shift_id: currentShiftId,
-                        p_reason: reason
-                    });
-
-                    if (error) throw error;
-                    set({ status: 'break', currentBreakId: (data as { break_id: string }).break_id });
-                } catch (e: unknown) {
-                    console.error('Error starting break:', e);
-                    const errorMsg = e instanceof Error ? e.message : 'Error al iniciar pausa';
-                    throw new Error(errorMsg);
-                }
+                const breakId = await rpc<string>('start_break', {
+                    p_token: token(),
+                    p_reason: reason,
+                });
+                set({ status: 'break', currentBreakId: breakId });
             },
 
             endBreak: async () => {
-                const { currentBreakId, currentShiftId } = get();
-                const employeeId = useAuthStore.getState().employee?.id;
-                if (!currentShiftId) throw new Error("No hay turno activo");
-                if (!employeeId) throw new Error("No autenticado");
-
-                try {
-                    const { error } = await supabase.rpc('end_break', {
-                        p_employee_id: employeeId,
-                        p_shift_id: currentShiftId,
-                        p_break_id: currentBreakId ?? null
-                    });
-
-                    if (error) throw error;
-                    set({ status: 'active', currentBreakId: null });
-                } catch (e: unknown) {
-                    console.error('Error ending break:', e);
-                    const errorMsg = e instanceof Error ? e.message : 'Error al finalizar pausa';
-                    throw new Error(errorMsg);
-                }
-            }
+                await rpc<void>('end_break', { p_token: token() });
+                set({ status: 'active', currentBreakId: null });
+            },
         }),
         {
             name: 'time-storage',

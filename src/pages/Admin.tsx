@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuthStore } from '../stores/useAuthStore';
 import { Button } from '../components/ui/Button';
-import { supabase } from '../lib/supabase';
+import { rpc } from '../lib/api';
 import { motion } from 'framer-motion';
 import { Trash2, Edit, FileDown, Shield, UserPlus, LogIn, Eye, RefreshCcw, MapPin, ThumbsUp, Users, Power, UserX, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -41,6 +41,7 @@ interface HistoryEntry {
 
 interface AdminUser {
     id: string;
+    is_master?: boolean;
     first_name: string;
     last_name: string;
     employee_email?: string | null;
@@ -57,13 +58,19 @@ interface AdminUser {
 
 
 export const AdminPage = () => {
-    const { logout, employee, isRegistrationEnabled, fetchSettings, toggleRegistration } = useAuthStore();
+    const {
+        logout, employee, token, isRegistrationEnabled, fetchSettings, toggleRegistration,
+        verifyEmployee, assignEmployee, setRole, deleteEmployee, impersonate,
+        regenerateInviteCode,
+    } = useAuthStore();
     const onlineUserIds = usePresenceStore((state) => state.onlineUserIds);
     const navigate = useNavigate();
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [view, setView] = useState<'history' | 'users' | 'map' | 'admins'>('history');
-    const isMasterAdmin = (employee?.invite_code || '').toUpperCase() === 'CORP-18EC';
+    // El servidor marca esta bandera al iniciar sesión. Antes se deducía
+    // comparando el texto 'CORP-18EC' en tres sitios distintos.
+    const isMasterAdmin = employee?.is_master === true;
     const [admins, setAdmins] = useState<AdminUser[]>([]);
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -86,61 +93,55 @@ export const AdminPage = () => {
     const [selectedUserForDetails, setSelectedUserForDetails] = useState<AdminUser | null>(null);
 
 
+    // El RPC ya devuelve solo los empleados de esta empresa y excluye a los
+    // administradores, así que no hace falta filtrar en el cliente.
     const fetchHistory = useCallback(async () => {
         try {
-            const { data, error } = await supabase.rpc('get_all_time_entries');
-            if (error) throw error;
-
-            // Filtrar entradas de administradores para mantener la vista de historial solo para empleados
-            const filteredHistory = (data || []).filter((entry: HistoryEntry) => entry.employee_role !== 'admin');
-            setHistory(filteredHistory);
+            const data = await rpc<HistoryEntry[]>('admin_get_history', { p_token: token });
+            setHistory(data ?? []);
+        } catch (err) {
+            console.error('Error al cargar el historial:', err);
         } finally {
             if (view === 'history') setLoading(false);
         }
-    }, [view]);
+    }, [view, token]);
 
+    // El aislamiento por empresa lo aplica el servidor: un admin solo recibe
+    // sus propios empleados, y el maestro además las altas sin validar.
     const fetchUsers = useCallback(async (shouldSetLoading = true) => {
-        if (!employee?.id) return;
         if (shouldSetLoading) setLoading(true);
         try {
-            const { data, error } = await supabase.rpc('get_employees', {
-                p_caller_id: employee.id,
-                p_is_master: isMasterAdmin
-            });
-            if (error) throw error;
-            setUsers((data || []).filter((user: AdminUser) => user.role !== 'admin'));
+            const data = await rpc<AdminUser[]>('admin_list_users', { p_token: token });
+            setUsers(data ?? []);
+        } catch (err) {
+            console.error('Error al cargar los usuarios:', err);
         } finally {
             if (shouldSetLoading) setLoading(false);
         }
-    }, [isMasterAdmin, employee?.id]);
+    }, [token]);
 
+    // Cuenta cualquier turno abierto. Antes filtraba status = 'active', así que
+    // quien estaba en pausa aparecía como no fichado.
     const fetchActiveUsers = useCallback(async () => {
-        if (!employee?.id) return;
         try {
-            const { data, error } = await supabase.rpc('get_active_employee_ids', {
-                p_caller_id: employee.id
-            });
-            if (error) throw error;
-            const activeIds = new Set<string>((data || []).map((item: { employee_id: string }) => item.employee_id));
-            setActiveUserIds(activeIds);
+            const ids = await rpc<string[]>('admin_get_active_user_ids', { p_token: token });
+            setActiveUserIds(new Set(ids ?? []));
         } catch (err) {
-            console.error('Error fetching active users:', err);
+            console.error('Error al cargar los usuarios activos:', err);
         }
-    }, [employee?.id]);
+    }, [token]);
 
     const fetchAdmins = useCallback(async () => {
-        if (!employee?.id) return;
         setLoading(true);
         try {
-            const { data, error } = await supabase.rpc('get_admins', {
-                p_caller_id: employee.id
-            });
-            if (error) throw error;
-            setAdmins(data || []);
+            const data = await rpc<AdminUser[]>('admin_list_admins', { p_token: token });
+            setAdmins(data ?? []);
+        } catch (err) {
+            console.error('Error al cargar los administradores:', err);
         } finally {
             setLoading(false);
         }
-    }, [employee?.id]);
+    }, [token]);
 
     useEffect(() => {
         fetchSettings();
@@ -177,80 +178,54 @@ export const AdminPage = () => {
 
         try {
             setLoading(true);
-            const { error } = await supabase.rpc('change_employee_role', {
-                p_caller_id: employee?.id,
-                p_target_id: userId,
-                p_new_role: newRole
-            });
+            // Solo el Administrador Maestro puede hacerlo, y lo comprueba el servidor.
+            const { success, error } = await setRole(userId, newRole as 'admin' | 'employee');
+            if (!success) throw new Error(error);
 
-            if (error) throw error;
-
-            // Refresh users list
             await fetchUsers(true);
+            if (view === 'admins') await fetchAdmins();
         } catch (err) {
-            console.error('Error updating role:', err);
-            alert('Hubo un error al cambiar el rol. Inténtalo de nuevo.');
+            console.error('Error al cambiar el rol:', err);
+            alert(err instanceof Error ? err.message : 'No se pudo cambiar el rol.');
         } finally {
             setLoading(false);
         }
     };
 
 
+    /**
+     * Validar un alta.
+     *
+     * La generación del código CORP-XXXX y el ascenso a rol admin los hace
+     * ahora el servidor dentro de admin_verify_employee, en una transacción.
+     * Antes se calculaban en el cliente y se enviaban como un UPDATE suelto.
+     */
     const handleVerifyUser = async (user: AdminUser) => {
-        if (isMasterAdmin) {
-            const isAdmin = user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@'));
-            if (isAdmin) {
-                const confirmed = window.confirm(`¿Validar al Administrador "${user.first_name} ${user.last_name}"?`);
-                if (!confirmed) return;
-
-                try {
-                    setLoading(true);
-
-                    const updateData: Partial<{ verified: boolean; invite_code: string; role: string }> = { verified: true };
-
-                    // Generate CORP-XXXX code if they are an admin (by role or pin prefix) AND don't have a valid one
-                    const isAdminByPin = (user.pin_text?.startsWith('@'));
-                    if ((user.role === 'admin' || isAdminByPin) && (!user.invite_code || user.invite_code.includes('?'))) {
-                        const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-                        updateData.invite_code = `CORP-${randomSuffix}`;
-                    }
-
-                    // Establecer explícitamente el rol a admin si usaron un PIN con @ pero no estaban marcados como admin aún
-                    if (isAdminByPin && user.role !== 'admin') {
-                        updateData.role = 'admin';
-                    }
-
-                    const { error } = await useAuthStore.getState().updateEmployee(user.id, updateData);
-                    if (error) throw error;
-
-                    alert(`Administrador ${user.first_name} ha sido validado.${updateData.invite_code ? `\nCódigo asignado: ${updateData.invite_code}` : ''}`);
-
-                    await fetchUsers(true);
-                    await fetchAdmins();
-                    return;
-                }
-                catch (err: unknown) {
-                    alert('Error: ' + (err instanceof Error ? err.message : 'Error desconocido'));
-                    setLoading(false);
-                    return;
-                }
-            }
+        // Un empleado sin administrador asignado lo asigna el maestro a mano.
+        if (isMasterAdmin && user.role !== 'admin' && !user.admin_id) {
             setUserToAssign(user);
             setIsAssignModalOpen(true);
             return;
         }
 
-        const confirmed = window.confirm(`¿Verificar al usuario "${user.first_name} ${user.last_name}"?`);
-        if (!confirmed) return;
+        const esAdmin = user.role === 'admin';
+        const confirmado = window.confirm(
+            esAdmin
+                ? `¿Validar al Administrador "${user.first_name} ${user.last_name}"?`
+                : `¿Verificar al usuario "${user.first_name} ${user.last_name}"?`
+        );
+        if (!confirmado) return;
 
         try {
             setLoading(true);
-            const { error } = await useAuthStore.getState().updateEmployee(user.id, { verified: true });
-            if (error) throw error;
+            const { success, error } = await verifyEmployee(user.id);
+            if (!success) throw new Error(error);
+
             await fetchUsers(true);
-        } catch (err: unknown) {
-            console.error('Error verifying user:', err);
-            alert('Error: ' + (err instanceof Error ? err.message : 'Error desconocido'));
+            if (esAdmin) await fetchAdmins();
+        } catch (err) {
+            console.error('Error al validar:', err);
+            alert(err instanceof Error ? err.message : 'No se pudo validar el usuario.');
         } finally {
             setLoading(false);
         }
@@ -261,15 +236,12 @@ export const AdminPage = () => {
 
         try {
             setLoading(true);
-            const { error } = await useAuthStore.getState().updateEmployee(userToAssign.id, {
-                admin_id: adminId,
-                verified: true
-            });
-            if (error) throw error;
+            const { success, error } = await assignEmployee(userToAssign.id, adminId);
+            if (!success) throw new Error(error);
             await fetchUsers(true);
-        } catch (err: unknown) {
-            console.error('Error assigning and verifying user:', err);
-            alert('Error: ' + (err instanceof Error ? err.message : 'Error desconocido'));
+        } catch (err) {
+            console.error('Error al asignar el usuario:', err);
+            alert(err instanceof Error ? err.message : 'No se pudo asignar el usuario.');
         } finally {
             setLoading(false);
             setUserToAssign(null);
@@ -282,12 +254,8 @@ export const AdminPage = () => {
 
         try {
             setLoading(true);
-            const { error } = await supabase.rpc('delete_employee', {
-                p_caller_id: employee?.id,
-                p_target_id: userId
-            });
-
-            if (error) throw error;
+            const { success, error } = await deleteEmployee(userId);
+            if (!success) throw new Error(error);
 
             // Refrescar lista de usuarios
             await fetchUsers(true);
@@ -300,8 +268,8 @@ export const AdminPage = () => {
                 await fetchAdmins();
             }
         } catch (err) {
-            console.error('Error deleting user:', err);
-            alert('Hubo un error al eliminar el usuario. Inténtalo de nuevo.');
+            console.error('Error al eliminar el usuario:', err);
+            alert(err instanceof Error ? err.message : 'No se pudo eliminar el usuario.');
         } finally {
             setLoading(false);
         }
@@ -669,7 +637,8 @@ export const AdminPage = () => {
         try {
             const doc = await generateAdminsPDF();
             pdfDocRef.current = doc;
-            setPdfPreviewUrl(String(doc.output('bloburl')));
+            // jsPDF devuelve un objeto URL; el modal espera una cadena.
+            setPdfPreviewUrl(doc.output('bloburl').toString());
             setIsPdfPreviewOpen(true);
         } catch (error) {
             console.error(error);
@@ -711,7 +680,7 @@ export const AdminPage = () => {
                             <div className="flex flex-col items-center gap-4 mt-6">
                                 <div className="bg-primary/10 border border-primary/30 rounded-full px-4 py-1.5 inline-flex items-center gap-2 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
                                     <span className="text-xs text-primary font-mono uppercase tracking-widest">Tu Código:</span>
-                                    <span className="text-sm text-white font-bold tracking-[0.2em] font-mono">{employee.invite_code}</span>
+                                    <span className="text-sm text-white font-bold tracking-[0.2em] font-mono">{employee?.invite_code}</span>
                                 </div>
                                 <div
                                     className={`text-2xl font-black font-mono tracking-[0.3em] uppercase drop-shadow-[0_0_20px_rgba(220,38,38,0.8)] animate-pulse ${isMasterAdmin
@@ -943,7 +912,7 @@ export const AdminPage = () => {
                                                                     )}
                                                                 </div>
                                                                 <div className="text-[10px] text-muted uppercase tracking-tighter">
-                                                                    {user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@')) ? 'Administrador' : 'Empleado'}
+                                                                    {user.role === 'admin' ? 'Administrador' : 'Empleado'}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -957,8 +926,8 @@ export const AdminPage = () => {
                                                         </span>
                                                     </td>
                                                     <td className="p-4 text-center">
-                                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@')) ? 'bg-purple-500/10 text-purple-400 border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}`}>
-                                                            {user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@')) ? 'ADMIN' : 'USUARIO'}
+                                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${user.role === 'admin' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}`}>
+                                                            {user.role === 'admin' ? 'ADMIN' : 'USUARIO'}
                                                         </span>
                                                     </td>
                                                     <td className="p-4">
@@ -972,13 +941,13 @@ export const AdminPage = () => {
                                                         {isMasterAdmin && !user.verified ? (
                                                             <button
                                                                 onClick={() => handleVerifyUser(user)}
-                                                                className={`flex items-center gap-2 px-3 py-1.5 border transition-all rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse hover:animate-none group ${user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@'))
+                                                                className={`flex items-center gap-2 px-3 py-1.5 border transition-all rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse hover:animate-none group ${user.role === 'admin'
                                                                     ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]'
                                                                     : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]'
                                                                     }`}
-                                                                title={user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@')) ? "Validar este Administrador" : "Validar y Asignar Usuario"}
+                                                                title={user.role === 'admin' ? "Validar este Administrador" : "Validar y Asignar Usuario"}
                                                             >
-                                                                {user.role === 'admin' || (user.pin_text && user.pin_text.startsWith('@')) ? (
+                                                                {user.role === 'admin' ? (
                                                                     <>
                                                                         <Shield className="w-4 h-4 group-hover:scale-110 transition-transform" />
                                                                         Validar Admin
@@ -1186,15 +1155,15 @@ export const AdminPage = () => {
                                                             {isMasterAdmin && (!admin.invite_code || admin.invite_code.includes('?')) && (
                                                                 <button
                                                                     onClick={async () => {
-                                                                        const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-                                                                        const newCode = `CORP-${randomSuffix}`;
+                                                                        // El código único lo genera y comprueba el servidor.
                                                                         try {
                                                                             setLoading(true);
-                                                                            const result = await useAuthStore.getState().updateEmployee(admin.id, { invite_code: newCode });
-                                                                            if (!result.success) throw new Error(result.error || 'Error al actualizar código');
+                                                                            const result = await regenerateInviteCode(admin.id);
+                                                                            if (!result.success) throw new Error(result.error || 'No se pudo generar el código');
                                                                             await fetchAdmins();
-                                                                        } catch (err: unknown) {
-                                                                            alert('Error: ' + (err instanceof Error ? err.message : 'Error desconocido'));
+                                                                        } catch (err) {
+                                                                            alert(err instanceof Error ? err.message : 'Error al generar el código');
+                                                                        } finally {
                                                                             setLoading(false);
                                                                         }
                                                                     }}
@@ -1239,9 +1208,11 @@ export const AdminPage = () => {
                                                                 </button>
                                                             )}
                                                             <button
-                                                                onClick={() => {
-                                                                    useAuthStore.getState().impersonate(admin);
-                                                                    navigate('/');
+                                                                onClick={async () => {
+                                                                    // El servidor emite una sesión nueva para ese admin.
+                                                                    const { success, error } = await impersonate(admin.id);
+                                                                    if (success) navigate('/');
+                                                                    else alert(error || 'No se pudo suplantar al usuario.');
                                                                 }}
                                                                 className="p-2 text-blue-400 hover:text-blue-500 transition-colors rounded-lg hover:bg-blue-500/10"
                                                                 title="Entrar como este administrador"
@@ -1261,11 +1232,11 @@ export const AdminPage = () => {
                                                             {isDeleteMode && (
                                                                 <button
                                                                     onClick={() => handleDeleteUser(admin.id, `${admin.first_name} ${admin.last_name}`)}
-                                                                    disabled={(admin.invite_code || '').toUpperCase() === 'CORP-18EC'}
-                                                                    className={`p-2 transition-colors rounded-lg ${(admin.invite_code || '').toUpperCase() === 'CORP-18EC'
+                                                                    disabled={admin.is_master === true}
+                                                                    className={`p-2 transition-colors rounded-lg ${admin.is_master === true
                                                                         ? 'text-muted cursor-not-allowed opacity-30'
                                                                         : 'text-red-400 hover:text-red-500 hover:bg-red-500/10'}`}
-                                                                    title={(admin.invite_code || '').toUpperCase() === 'CORP-18EC' ? "No puedes eliminar al Administrador Maestro" : "Eliminar administrador"}
+                                                                    title={admin.is_master === true ? "No puedes eliminar al Administrador Maestro" : "Eliminar administrador"}
                                                                 >
                                                                     <Trash2 className="w-5 h-5" />
                                                                 </button>
@@ -1319,7 +1290,7 @@ export const AdminPage = () => {
             <ManualModal
                 isOpen={isManualModalOpen}
                 onClose={() => setIsManualModalOpen(false)}
-                userCode={employee?.invite_code ?? ''}
+                userCode={employee?.invite_code || ''}
             />
 
             <PdfPreviewModal

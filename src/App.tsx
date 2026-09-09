@@ -10,6 +10,7 @@ const TrackerPage = lazy(() => import('./pages/Tracker').then(m => ({ default: m
 const AdminPage = lazy(() => import('./pages/Admin').then(m => ({ default: m.AdminPage })));
 const AdminMapPage = lazy(() => import('./pages/AdminMap').then(m => ({ default: m.AdminMapPage })));
 const AdminRegisterPage = lazy(() => import('./pages/AdminRegister').then(m => ({ default: m.AdminRegisterPage })));
+const SettingsPage = lazy(() => import('./pages/Settings').then(m => ({ default: m.SettingsPage })));
 
 // Componente de indicador de carga
 const LoadingSpinner = () => (
@@ -48,6 +49,10 @@ function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin-register" element={<AdminRegisterPage />} />
+
+            {/* Configuración: accesible sin sesión, porque sin credenciales de
+                Supabase no se puede ni iniciar sesión. */}
+            <Route path="/configuracion" element={<SettingsPage />} />
 
             {/* Rutas de Empleado (Redirige a los Administradores al Panel) */}
             <Route path="/" element={

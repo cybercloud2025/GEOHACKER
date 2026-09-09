@@ -46,8 +46,8 @@ export const CreateAdminModal = ({ isOpen, onClose, onSuccess }: CreateAdminModa
             } else {
                 setError(result.error || 'Error al crear administrador');
             }
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Error desconocido');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error inesperado');
         } finally {
             setLoading(false);
         }
@@ -184,7 +184,7 @@ interface CreateUserModalProps {
 }
 
 export const CreateUserModal = ({ isOpen, onClose, onSuccess }: CreateUserModalProps) => {
-    const { register, employee } = useAuthStore();
+    const { createUser, employee } = useAuthStore();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -202,8 +202,9 @@ export const CreateUserModal = ({ isOpen, onClose, onSuccess }: CreateUserModalP
         try {
             if (pin.length !== 4) throw new Error('El PIN debe tener 4 dígitos');
 
-            const adminInviteCode = employee?.invite_code;
-            const result = await register(firstName, lastName, pin, email, null, adminInviteCode);
+            // Alta dentro de la propia organización: el servidor deduce el
+            // admin del token, así que ya no hace falta mandar el código.
+            const result = await createUser(firstName, lastName, pin, email, null);
 
             if (result.success) {
                 alert(`Usuario creado con éxito.\n\nPIN: ${pin}\nVinculado a: ${employee?.first_name} ${employee?.last_name}`);
@@ -215,8 +216,8 @@ export const CreateUserModal = ({ isOpen, onClose, onSuccess }: CreateUserModalP
             } else {
                 setError(result.error || 'Error al crear usuario');
             }
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Error desconocido');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error inesperado');
         } finally {
             setLoading(false);
         }
@@ -331,6 +332,7 @@ interface EditUserModalProps {
         employee_email?: string | null;
         pin_text?: string | null;
         role: string;
+        is_master?: boolean;
         invite_code?: string;
         company_name?: string | null;
         fiscal_id?: string | null;
@@ -369,7 +371,7 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
         try {
             // Determine validation type based on input format OR existing role
             const isTryingToSetAdminPin = pin.startsWith('@');
-            const isMasterAdmin = user.invite_code === 'CORP-18EC';
+            const isMasterAdmin = user.is_master === true;
 
             if (isMasterAdmin) {
                 const is8Digits = /^\d{8}$/.test(pin);
@@ -389,7 +391,7 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
                 if (pin.length !== 4) throw new Error('El PIN debe tener 4 dígitos');
             }
 
-            const updateData: Partial<{ first_name: string; last_name: string; employee_email: string | null; pin_text: string; company_name: string | null; fiscal_id: string | null }> = {
+            const updateData = {
                 first_name: firstName,
                 last_name: lastName,
                 employee_email: email || null,
@@ -405,8 +407,8 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
             } else {
                 setError(result.error || 'Error al actualizar usuario');
             }
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Error desconocido');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error inesperado');
         } finally {
             setLoading(false);
         }
@@ -498,7 +500,7 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
                         </label>
                         <input
                             type="text"
-                            maxLength={user.invite_code === 'CORP-18EC' ? 8 : (user.role === 'admin' || pin.startsWith('@') ? 6 : 4)}
+                            maxLength={user.is_master ? 8 : (user.role === 'admin' || pin.startsWith('@') ? 6 : 4)}
                             value={pin}
                             onChange={(e) => {
                                 const rawValue = e.target.value;
@@ -506,7 +508,7 @@ export const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModa
                                 if (rawValue.startsWith('@')) {
                                     cleaned = '@' + rawValue.slice(1).replace(/\D/g, '').slice(0, 5);
                                 } else {
-                                    const maxDigits = user.invite_code === 'CORP-18EC' ? 8 : 4;
+                                    const maxDigits = user.is_master ? 8 : 4;
                                     cleaned = rawValue.replace(/\D/g, '').slice(0, maxDigits);
                                 }
                                 setPin(cleaned);

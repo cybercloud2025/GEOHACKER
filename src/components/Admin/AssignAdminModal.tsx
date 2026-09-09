@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Shield, Search, Check } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { rpc } from '../../lib/api';
+import { useAuthStore } from '../../stores/useAuthStore';
 import { Button } from '../ui/Button';
 
 interface Admin {
@@ -31,21 +32,18 @@ export const AssignAdminModal = ({ isOpen, onClose, onAssign, userName }: Assign
         }
     }, [isOpen]);
 
+    // El servidor decide quién es asignable (excluye al maestro) y comprueba
+    // que quien pregunta sea realmente el Administrador Maestro.
     const fetchNormalAdmins = async () => {
         setLoading(true);
         try {
-            // Fetch admins that are NOT Master Admin (excluding CORP-18EC)
-            const { data, error } = await supabase
-                .from('employees')
-                .select('id, first_name, last_name, employee_email, invite_code')
-                .eq('role', 'admin')
-                .neq('invite_code', 'CORP-18EC') // Exclude Master Admin
-                .order('first_name', { ascending: true });
+            const token = useAuthStore.getState().token;
+            if (!token) return;
 
-            if (error) throw error;
-            setAdmins(data || []);
+            const data = await rpc<Admin[]>('admin_list_assignable_admins', { p_token: token });
+            setAdmins(data ?? []);
         } catch (err) {
-            console.error('Error fetching admins:', err);
+            console.error('Error al cargar los administradores:', err);
         } finally {
             setLoading(false);
         }

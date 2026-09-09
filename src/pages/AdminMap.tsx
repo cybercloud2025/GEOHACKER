@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { rpc } from '../lib/api';
+import { useAuthStore } from '../stores/useAuthStore';
 import { ArrowLeft, MapPin } from 'lucide-react';
 
 /* --- GOOGLE MAPS IMPORTS --- */
@@ -33,18 +34,23 @@ export const AdminMapPage = () => {
     const [entry, setEntry] = useState<HistoryEntry | null>(null);
     const [loading, setLoading] = useState(true);
 
+
+
+    // Se pide SOLO este fichaje. Antes se descargaba el historial completo y se
+    // buscaba el registro en el cliente.
     const fetchEntry = useCallback(async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabase.rpc('get_all_time_entries');
-            if (error) throw error;
+            const token = useAuthStore.getState().token;
+            if (!token || !id) return;
 
-            const found = data.find((d: HistoryEntry) => d.id === id);
-            if (found) {
-                setEntry(found);
-            }
+            const data = await rpc<HistoryEntry>('admin_get_time_entry', {
+                p_token: token,
+                p_entry_id: id,
+            });
+            setEntry(data ?? null);
         } catch (err) {
-            console.error('Error fetching entry details:', err);
+            console.error('Error al cargar el fichaje:', err);
         } finally {
             setLoading(false);
         }

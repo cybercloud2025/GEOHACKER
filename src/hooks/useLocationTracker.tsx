@@ -1,135 +1,136 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTimeStore } from '../stores/useTimeStore';
-import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/useAuthStore';
+import { rpc } from '../lib/api';
 
-// Config
 const GPS_OPTIONS: PositionOptions = {
     enableHighAccuracy: true,
     timeout: 10000,
-    maximumAge: 0
+    maximumAge: 0,
 };
 
-const MIN_DISTANCE_METERS = 10; // Only record if moved X meters
+/** Distancia mínima recorrida para guardar un punto nuevo. */
+const MIN_DISTANCIA_METROS = 10;
+/** Aunque no haya movimiento, se guarda un punto cada tanto. */
+const MAX_SILENCIO_MS = 2 * 60 * 1000;
 
-function getDistanceFromLatLonInMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
-    const R = 6371; // Radius of the earth in km
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
+function distanciaEnMetros(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371000; // radio terrestre en metros
+    const dLat = gradosARadianes(lat2 - lat1);
+    const dLon = gradosARadianes(lon2 - lon1);
     const a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2)
-        ;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const d = R * c; // Distance in km
-    return d * 1000;
+        Math.cos(gradosARadianes(lat1)) * Math.cos(gradosARadianes(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function deg2rad(deg: number) {
-    return deg * (Math.PI / 180)
+function gradosARadianes(deg: number) {
+    return deg * (Math.PI / 180);
+}
+
+interface BatteryManager {
+    level: number;
+}
+
+/** Nivel de batería real (0-100) o null si el navegador no lo expone. */
+async function nivelBateria(): Promise<number | null> {
+    const nav = navigator as Navigator & { getBattery?: () => Promise<BatteryManager> };
+    if (typeof nav.getBattery !== 'function') return null;
+    try {
+        const bat = await nav.getBattery();
+        return Math.round(bat.level * 100);
+    } catch {
+        return null;
+    }
+}
+
+interface PuntoEnviado {
+    latitude: number;
+    longitude: number;
+    enviadoEn: number;
 }
 
 export const useLocationTracker = () => {
-    const { status, currentShiftId, updateLocation, lastKnownLocation } = useTimeStore();
-    const { employee } = useAuthStore();
-
-    // Refs to access latest state inside the callback without restarting the watcher
-    const stateRef = useRef({ status, currentShiftId, employee, lastKnownLocation });
-
-    // Update refs whenever state changes
-    useEffect(() => {
-        stateRef.current = { status, currentShiftId, employee, lastKnownLocation };
-    }, [status, currentShiftId, employee, lastKnownLocation]);
+    const status = useTimeStore((s) => s.status);
+    const updateLocation = useTimeStore((s) => s.updateLocation);
+    const token = useAuthStore((s) => s.token);
 
     const watchId = useRef<number | null>(null);
-    const [isTracking, setIsTracking] = useState(false);
+    const [errorGps, setErrorGps] = useState(false);
+
+    /**
+     * Última posición REALMENTE enviada a la base de datos.
+     *
+     * Antes el filtro de distancia se comparaba contra `lastKnownLocation`, que
+     * se actualizaba en cada lectura del GPS. Con alguien caminando despacio la
+     * distancia entre lecturas consecutivas nunca superaba los 10 m, así que no
+     * se guardaba ningún punto en todo el turno.
+     */
+    const ultimoEnviado = useRef<PuntoEnviado | null>(null);
+
+    // El turno lo resuelve el servidor a partir del token, así que el hook solo
+    // necesita saber si hay que estar escuchando el GPS.
+    const tokenRef = useRef(token);
+    useEffect(() => { tokenRef.current = token; }, [token]);
 
     useEffect(() => {
-        // START TRACKING condition
-        if (status === 'active' && 'geolocation' in navigator) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setIsTracking(true);
-
-            watchId.current = navigator.geolocation.watchPosition(
-                async (position) => {
-                    // Access latest state from Ref
-                    const { currentShiftId, employee, lastKnownLocation } = stateRef.current;
-
-                    const { latitude, longitude, accuracy, heading, speed } = position.coords;
-                    const timestamp = position.timestamp;
-
-                    const newCoords = { latitude, longitude, accuracy, timestamp };
-
-                    // 1. Always update local state for UI
-                    updateLocation(newCoords);
-
-                    // 2. Decide if we send to DB (Debounce/Distance filter)
-                    // Logic: Send if:
-                    // a) We haven't verified sending for this specific Shift ID yet (Force first ping of shift)
-                    // b) We moved enough distance
-
-                    let shouldSend = false;
-                    const lastSentShiftId = sessionStorage.getItem('lastSentShiftId');
-
-                    if (currentShiftId && lastSentShiftId !== currentShiftId) {
-                        shouldSend = true;
-
-                    } else if (!lastKnownLocation) {
-                        shouldSend = true;
-                    } else {
-                        const dist = getDistanceFromLatLonInMeters(
-                            lastKnownLocation.latitude, lastKnownLocation.longitude,
-                            latitude, longitude
-                        );
-
-                        // Default check: Moved more than 10 meters
-                        if (dist > MIN_DISTANCE_METERS) {
-                            shouldSend = true;
-                        }
-                    }
-
-                    if (shouldSend && currentShiftId && employee) {
-                        const { error } = await supabase.rpc('insert_location_point', {
-                            p_employee_id: employee.id,
-                            p_shift_id: currentShiftId,
-                            p_latitude: latitude,
-                            p_longitude: longitude,
-                            p_accuracy: accuracy ?? null,
-                            p_heading: heading ?? null,
-                            p_speed: speed ?? null
-                        });
-
-                        if (error) {
-                            console.error('Error saving location:', error);
-                        } else {
-                            sessionStorage.setItem('lastSentShiftId', currentShiftId);
-                        }
-                    }
-                },
-                (error) => {
-                    console.error('Error getting location:', error);
-                    setIsTracking(false);
-                },
-                GPS_OPTIONS
-            );
-
-        } else {
-            // STOP TRACKING
+        if (status !== 'active' || !('geolocation' in navigator)) {
             if (watchId.current !== null) {
                 navigator.geolocation.clearWatch(watchId.current);
                 watchId.current = null;
             }
-            setIsTracking(false);
+            ultimoEnviado.current = null;
+            return;
         }
 
-        // Cleanup on unmount
+        watchId.current = navigator.geolocation.watchPosition(
+            async (position) => {
+                setErrorGps(false);
+
+                const { latitude, longitude, accuracy, heading, speed } = position.coords;
+                updateLocation({ latitude, longitude, accuracy, timestamp: position.timestamp });
+
+                const anterior = ultimoEnviado.current;
+                const ahora = Date.now();
+
+                const hayQueEnviar =
+                    !anterior ||
+                    ahora - anterior.enviadoEn > MAX_SILENCIO_MS ||
+                    distanciaEnMetros(anterior.latitude, anterior.longitude, latitude, longitude)
+                        > MIN_DISTANCIA_METROS;
+
+                if (!hayQueEnviar || !tokenRef.current) return;
+
+                try {
+                    await rpc<void>('record_location', {
+                        p_token: tokenRef.current,
+                        p_latitude: latitude,
+                        p_longitude: longitude,
+                        p_accuracy: accuracy ?? null,
+                        p_heading: heading ?? null,
+                        p_speed: speed ?? null,
+                        p_battery: await nivelBateria(),
+                    });
+                    ultimoEnviado.current = { latitude, longitude, enviadoEn: ahora };
+                } catch (error) {
+                    console.error('No se pudo guardar la ubicación:', error);
+                }
+            },
+            (error) => {
+                console.error('Error de geolocalización:', error);
+                setErrorGps(true);
+            },
+            GPS_OPTIONS
+        );
+
         return () => {
             if (watchId.current !== null) {
                 navigator.geolocation.clearWatch(watchId.current);
+                watchId.current = null;
             }
         };
-    }, [status, updateLocation]); // Only re-run if status changes (active/idle)
+    }, [status, updateLocation]);
 
-    return { isTracking };
+    return { isTracking: status === 'active' && !errorGps };
 };

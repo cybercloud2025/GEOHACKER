@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, ShieldCheck } from 'lucide-react';
+import { UserPlus, ShieldCheck, Settings, AlertTriangle } from 'lucide-react';
 import hackerIcon from '../assets/hacker-icon.png';
 import adminLogo from '../assets/admin-logo.png';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -11,6 +11,8 @@ import { Button } from '../components/ui/Button';
 const MatrixRain = React.lazy(() => import('../components/Effects/MatrixRain').then(m => ({ default: m.MatrixRain })));
 const TerminalCodeEffect = React.lazy(() => import('../components/Effects/TerminalCodeEffect').then(m => ({ default: m.TerminalCodeEffect })));
 import { playAlarm } from '../utils/audio';
+import { DemoAccounts } from '../components/DemoAccounts';
+import { useConfigStore, supabaseConfigurado } from '../lib/config';
 
 export const LoginPage = () => {
     const [isRegistering, setIsRegistering] = useState(false);
@@ -18,6 +20,7 @@ export const LoginPage = () => {
         firstName: '',
         lastName: '',
         email: '',
+        inviteCode: '',
         pin: '',
         avatar: null as File | null,
         avatarPreview: ''
@@ -32,6 +35,8 @@ export const LoginPage = () => {
     const [alarmTriggered, setAlarmTriggered] = useState(false);
     const [clickState, setClickState] = useState({ count: 0, lastClick: 0 });
     const [loadEffects, setLoadEffects] = useState(false);
+    const mostrarDemo = useConfigStore((s) => s.showDemoAccounts);
+    const hayConexion = supabaseConfigurado();
 
     useEffect(() => {
         // Retrasar efectos pesados ligeramente para priorizar el renderizado del formulario
@@ -158,7 +163,8 @@ export const LoginPage = () => {
                 formData.lastName,
                 formData.pin,
                 formData.email,
-                avatarUrl
+                avatarUrl,
+                formData.inviteCode.trim() || null
             );
             if (success) {
                 handleSuccessRedirect();
@@ -201,6 +207,46 @@ export const LoginPage = () => {
 
             {/* Superposición de cuadrícula para sensación tecnológica */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,255,0.05)_1px,transparent_1px)] bg-[size:30px_30px] z-0 pointer-events-none" />
+
+            {/* Acceso a la configuración: tiene que estar aquí porque sin las
+                credenciales de Supabase no se puede iniciar sesión. */}
+            <Link
+                to="/configuracion"
+                title="Configuración"
+                className="absolute top-5 right-5 z-30 p-2.5 rounded-xl border border-white/10 bg-black/50 backdrop-blur
+                           text-white/40 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors"
+            >
+                <Settings className="w-5 h-5" />
+            </Link>
+
+            {/* Sin conexión configurada no hay nada que hacer: se avisa antes de
+                que el usuario pruebe un PIN y reciba un error de red. */}
+            {!hayConexion && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative z-30 w-full max-w-md mb-6 p-4 rounded-2xl border border-yellow-500/40 bg-yellow-500/5 backdrop-blur-xl"
+                >
+                    <div className="flex gap-3">
+                        <AlertTriangle className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-[11px] font-black uppercase tracking-widest text-yellow-400">
+                                Falta configurar la base de datos
+                            </p>
+                            <p className="text-[11px] text-white/60 mt-1 leading-relaxed">
+                                Introduce la URL y la clave anónima de tu proyecto Supabase para poder entrar.
+                            </p>
+                            <Link
+                                to="/configuracion"
+                                className="inline-block mt-3 px-3 py-1.5 rounded-lg border border-yellow-500/40 text-yellow-400
+                                           text-[10px] font-black uppercase tracking-widest hover:bg-yellow-500/10 transition-colors"
+                            >
+                                Abrir configuración
+                            </Link>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
 
             {/* TARJETA PRINCIPAL */}
             <motion.div
@@ -327,6 +373,18 @@ export const LoginPage = () => {
                                                 disabled={isLoading}
                                                 className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-cyan-500/50 focus:bg-white/10 rounded-xl h-12 text-xs font-bold tracking-wider text-center"
                                             />
+                                            {/* Si se indica, el alta entra directa en esa empresa.
+                                                Si se deja vacío, la asigna el Administrador Maestro. */}
+                                            <Input
+                                                type="text"
+                                                name="inviteCode"
+                                                placeholder="CÓDIGO DE EMPRESA (OPCIONAL)"
+                                                value={formData.inviteCode}
+                                                onChange={handleInputChange}
+                                                disabled={isLoading}
+                                                maxLength={9}
+                                                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-cyan-500/50 focus:bg-white/10 rounded-xl h-12 text-xs font-bold tracking-wider text-center uppercase"
+                                            />
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -440,13 +498,18 @@ export const LoginPage = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1 }}
-                    className="mt-6 mb-4 sm:absolute sm:bottom-24 text-center"
+                    className={`mt-6 mb-4 text-center ${mostrarDemo ? '' : 'sm:absolute sm:bottom-24'}`}
                 >
                     <div className="flex items-center gap-3 text-[14px] text-cyan-400 font-mono tracking-[0.2em] font-black drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
                         <span className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
                         SYSTEM ONLINE // V.3.0.1
                     </div>
                 </motion.div>
+            )}
+
+            {/* Accesos rápidos de demostración */}
+            {!isRegistering && mostrarDemo && (
+                <DemoAccounts onEntrar={performLogin} cargando={isLoading} />
             )}
 
             {/* MODAL SECRETO */}
