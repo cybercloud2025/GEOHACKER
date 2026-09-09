@@ -227,38 +227,94 @@ export const LoginPage = () => {
             <div className="relative z-20 w-full flex flex-col items-center gap-5
                             lg:flex-row lg:items-center lg:justify-center lg:gap-6">
 
-            {/* Sin base de datos configurada la aplicación no se queda muerta:
-                funciona sobre datos ficticios dentro del navegador. Es una
-                situación normal, no un error, así que no se pinta como aviso. */}
-            {!hayConexion && (
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="relative z-30 w-full max-w-md p-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/5 backdrop-blur-xl lg:self-center"
-                >
-                    <div className="flex gap-3">
-                        <FlaskConical className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
-                        <div>
-                            <p className="text-[11px] font-black uppercase tracking-widest text-cyan-400">
-                                Modo demostración
-                            </p>
-                            <p className="text-[11px] text-white/60 mt-1 leading-relaxed">
-                                Estás sobre una base de datos ficticia que vive en tu navegador, con
-                                empresas, empleados y fichajes ya cargados. Entra con cualquiera de las
-                                cuentas de abajo y recorre la aplicación entera. Nada de lo que hagas
-                                sale de este dispositivo.
-                            </p>
-                            <Link
-                                to="/configuracion"
-                                className="inline-block mt-3 px-3 py-1.5 rounded-lg border border-cyan-500/40 text-cyan-400
-                                           text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500/10 transition-colors"
-                            >
-                                Conectar mi base de datos
-                            </Link>
+            {/* Columna izquierda: el cartel de demostración y, debajo, la
+                llamada al tutorial. Ese hueco quedaba vacío y es donde mejor
+                se ve la invitación, junto al texto que la explica. */}
+            <div className="w-full max-w-md flex flex-col items-center gap-4">
+
+                {/* Sin base de datos configurada la aplicación no se queda muerta:
+                    funciona sobre datos ficticios dentro del navegador. Es una
+                    situación normal, no un error, así que no se pinta como aviso. */}
+                {!hayConexion && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="relative z-30 w-full max-w-md p-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/5 backdrop-blur-xl lg:self-center"
+                    >
+                        <div className="flex gap-3">
+                            <FlaskConical className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-[11px] font-black uppercase tracking-widest text-cyan-400">
+                                    Modo demostración
+                                </p>
+                                <p className="text-[11px] text-white/60 mt-1 leading-relaxed">
+                                    Estás sobre una base de datos ficticia que vive en tu navegador, con
+                                    empresas, empleados y fichajes ya cargados. Entra con cualquiera de las
+                                    cuentas de abajo y recorre la aplicación entera. Nada de lo que hagas
+                                    sale de este dispositivo.
+                                </p>
+                                <Link
+                                    to="/configuracion"
+                                    className="inline-block mt-3 px-3 py-1.5 rounded-lg border border-cyan-500/40 text-cyan-400
+                                               text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500/10 transition-colors"
+                                >
+                                    Conectar mi base de datos
+                                </Link>
+                            </div>
                         </div>
-                    </div>
-                </motion.div>
-            )}
+                    </motion.div>
+                )}
+
+                {/* Llamada al tutorial, debajo del cartel que la contextualiza. */}
+                {!isRegistering && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 }}
+                        className="relative z-20 flex flex-col items-center"
+                    >
+                        {/* Dedo que sube y baja señalando el botón */}
+                        <motion.div
+                            animate={{ y: [0, -7, 0] }}
+                            transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}
+                            className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.9)] mb-1"
+                        >
+                            <MousePointerClick className="w-6 h-6" />
+                        </motion.div>
+
+                        <Link to="/tutorial" className="group/tuto relative">
+                            {/* Halo que late por detrás del botón */}
+                            <motion.span
+                                aria-hidden
+                                animate={{ opacity: [0.25, 0.6, 0.25], scale: [1, 1.06, 1] }}
+                                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                                className="absolute -inset-1 rounded-2xl bg-[#39FF14]/30 blur-lg pointer-events-none"
+                            />
+                            <span
+                                className="relative flex items-center gap-2.5 px-7 py-3.5 rounded-2xl
+                                           border-2 border-[#39FF14] bg-black/70 backdrop-blur
+                                           text-[#39FF14] font-black uppercase tracking-[0.2em] text-[13px]
+                                           shadow-[0_0_25px_rgba(57,255,20,0.45)]
+                                           hover:bg-[#39FF14] hover:text-black
+                                           hover:shadow-[0_0_40px_rgba(57,255,20,0.8)]
+                                           transition-all duration-300 active:scale-[0.97]"
+                            >
+                                <BookOpen className="w-5 h-5" />
+                                Cómo se usa
+                            </span>
+                        </Link>
+
+                        <motion.p
+                            animate={{ opacity: [0.55, 1, 0.55] }}
+                            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                            className="mt-2 text-[11px] font-bold uppercase tracking-[0.25em] text-[#39FF14]/80"
+                        >
+                            Pincha aquí para ver el tutorial
+                        </motion.p>
+                    </motion.div>
+                )}
+
+            </div>
 
             {/* TARJETA PRINCIPAL */}
             <motion.div
@@ -525,57 +581,6 @@ export const LoginPage = () => {
                         <span className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
                         SYSTEM ONLINE // V.3.0.1
                     </div>
-                </motion.div>
-            )}
-
-            {/* Llamada al tutorial. Va entre el estado del sistema y las cuentas
-                porque es el punto al que llega la mirada tras leer la tarjeta de
-                acceso, y antes de decidir con qué cuenta entrar. */}
-            {!isRegistering && (
-                <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8 }}
-                    className="relative z-20 flex flex-col items-center mt-4"
-                >
-                    {/* Dedo que sube y baja señalando el botón */}
-                    <motion.div
-                        animate={{ y: [0, -7, 0] }}
-                        transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}
-                        className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.9)] mb-1"
-                    >
-                        <MousePointerClick className="w-6 h-6" />
-                    </motion.div>
-
-                    <Link to="/tutorial" className="group/tuto relative">
-                        {/* Halo que late por detrás del botón */}
-                        <motion.span
-                            aria-hidden
-                            animate={{ opacity: [0.25, 0.6, 0.25], scale: [1, 1.06, 1] }}
-                            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                            className="absolute -inset-1 rounded-2xl bg-[#39FF14]/30 blur-lg pointer-events-none"
-                        />
-                        <span
-                            className="relative flex items-center gap-2.5 px-7 py-3.5 rounded-2xl
-                                       border-2 border-[#39FF14] bg-black/70 backdrop-blur
-                                       text-[#39FF14] font-black uppercase tracking-[0.2em] text-[13px]
-                                       shadow-[0_0_25px_rgba(57,255,20,0.45)]
-                                       hover:bg-[#39FF14] hover:text-black
-                                       hover:shadow-[0_0_40px_rgba(57,255,20,0.8)]
-                                       transition-all duration-300 active:scale-[0.97]"
-                        >
-                            <BookOpen className="w-5 h-5" />
-                            Cómo se usa
-                        </span>
-                    </Link>
-
-                    <motion.p
-                        animate={{ opacity: [0.55, 1, 0.55] }}
-                        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                        className="mt-2 text-[11px] font-bold uppercase tracking-[0.25em] text-[#39FF14]/80"
-                    >
-                        Pincha aquí para ver el tutorial
-                    </motion.p>
                 </motion.div>
             )}
 
