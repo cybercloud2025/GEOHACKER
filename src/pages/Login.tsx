@@ -221,13 +221,19 @@ export const LoginPage = () => {
                 <Settings className="w-5 h-5" />
             </Link>
 
+            {/* Aviso y tarjeta de acceso, en paralelo cuando hay ancho.
+                Apilados ocupaban tanto alto que el panel de cuentas se salía de
+                la pantalla. */}
+            <div className="relative z-20 w-full flex flex-col items-center gap-5
+                            lg:flex-row lg:items-center lg:justify-center lg:gap-6">
+
             {/* Sin conexión configurada no hay nada que hacer: se avisa antes de
                 que el usuario pruebe un PIN y reciba un error de red. */}
             {!hayConexion && (
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="relative z-30 w-full max-w-md mb-6 p-4 rounded-2xl border border-yellow-500/40 bg-yellow-500/5 backdrop-blur-xl"
+                    className="relative z-30 w-full max-w-md p-4 rounded-2xl border border-yellow-500/40 bg-yellow-500/5 backdrop-blur-xl lg:self-center"
                 >
                     <div className="flex gap-3">
                         <AlertTriangle className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
@@ -498,6 +504,8 @@ export const LoginPage = () => {
                     </div>
                 </div>
             </motion.div>
+
+            </div>
 
             {/* Estado del Sistema */}
             {!isRegistering && (
