@@ -354,6 +354,7 @@ public/
 src/
   lib/
     demoBackend.ts    Base de datos ficticia en el navegador (modo demostración)
+    tutorial.ts       Contenido del tutorial, aparte de la maquetación
     config.ts         Configuración en tiempo de ejecución (claves del usuario)
     api.ts            Única puerta a la base de datos: rpc() + errores
     supabase.ts       Cliente, reconstruido si cambian las credenciales
@@ -362,7 +363,8 @@ src/
     demoAccounts.ts   Cuentas que pinta el panel del acceso
   stores/             Zustand: auth (sesión y token), tiempos, presencia
   hooks/              useLocationTracker: GPS mientras hay turno abierto
-  pages/              Login, Tracker, Admin, AdminMap, AdminRegister, Settings
+  pages/              Login, Tracker, Admin, AdminMap, AdminRegister, Settings,
+                      Tutorial (guía de uso en /tutorial)
   components/         UI, modales de administración, mapas y panel de demo
 ```
 

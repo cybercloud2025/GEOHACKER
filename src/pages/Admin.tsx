@@ -3,8 +3,8 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { Button } from '../components/ui/Button';
 import { rpc } from '../lib/api';
 import { motion } from 'framer-motion';
-import { Trash2, Edit, FileDown, Shield, UserPlus, LogIn, Eye, RefreshCcw, MapPin, ThumbsUp, Users, Power, UserX, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Trash2, Edit, FileDown, Shield, UserPlus, LogIn, Eye, RefreshCcw, MapPin, ThumbsUp, Users, Power, UserX, FileText, BookOpen } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { LiveUserMap } from '../components/Admin/LiveUserMap';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -836,6 +836,16 @@ export const AdminPage = () => {
                                         <FileText className="w-4 h-4" />
                                         Manual
                                     </Button>
+                                    {/* Guía completa del programa, no solo del alta de usuarios. */}
+                                    <Link to="/tutorial">
+                                        <Button
+                                            variant="secondary"
+                                            className="h-9 px-4 text-xs flex items-center gap-2 border-cyan-500/20 hover:bg-cyan-500/10 text-cyan-400"
+                                        >
+                                            <BookOpen className="w-4 h-4" />
+                                            Cómo se usa
+                                        </Button>
+                                    </Link>
                                     <Button
                                         onClick={exportToPDF}
                                         variant="secondary"

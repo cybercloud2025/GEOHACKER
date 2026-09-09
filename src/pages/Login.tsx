@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, ShieldCheck, Settings, FlaskConical } from 'lucide-react';
+import { UserPlus, ShieldCheck, Settings, FlaskConical, BookOpen } from 'lucide-react';
 import hackerIcon from '../assets/hacker-icon.png';
 import adminLogo from '../assets/admin-logo.png';
 import { Link, useNavigate } from 'react-router-dom';
@@ -210,16 +210,28 @@ export const LoginPage = () => {
             {/* Superposición de cuadrícula para sensación tecnológica */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,255,0.05)_1px,transparent_1px)] bg-[size:30px_30px] z-0 pointer-events-none" />
 
-            {/* Acceso a la configuración: tiene que estar aquí porque sin las
-                credenciales de Supabase no se puede iniciar sesión. */}
-            <Link
-                to="/configuracion"
-                title="Configuración"
-                className="absolute top-5 right-5 z-30 p-2.5 rounded-xl border border-white/10 bg-black/50 backdrop-blur
-                           text-white/40 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors"
-            >
-                <Settings className="w-5 h-5" />
-            </Link>
+            {/* Tutorial y configuración. Ambos accesibles sin iniciar sesión:
+                las dudas y la falta de credenciales aparecen justo aquí. */}
+            <div className="absolute top-5 right-5 z-30 flex items-center gap-2">
+                <Link
+                    to="/tutorial"
+                    className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-cyan-500/30 bg-black/50 backdrop-blur
+                               text-cyan-400/80 hover:text-cyan-300 hover:border-cyan-500/60 hover:bg-cyan-500/10 transition-colors"
+                >
+                    <BookOpen className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">
+                        Cómo se usa
+                    </span>
+                </Link>
+                <Link
+                    to="/configuracion"
+                    title="Configuración"
+                    className="p-2.5 rounded-xl border border-white/10 bg-black/50 backdrop-blur
+                               text-white/40 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors"
+                >
+                    <Settings className="w-5 h-5" />
+                </Link>
+            </div>
 
             {/* Aviso y tarjeta de acceso, en paralelo cuando hay ancho.
                 Apilados ocupaban tanto alto que el panel de cuentas se salía de
