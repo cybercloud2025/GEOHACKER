@@ -31,7 +31,7 @@ export const DemoAccounts = ({ onEntrar, cargando }: DemoAccountsProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             // Estrecho en móvil (una columna) y ancho en escritorio, donde caben tres.
-            className="w-full max-w-md lg:max-w-4xl mt-4 mb-6 relative z-20"
+            className="w-full max-w-md lg:max-w-4xl mt-3 mb-6 relative z-20"
         >
             <div className="bg-black/70 backdrop-blur-xl border border-cyan-500/20 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,247,255,0.06)]">
                 <button

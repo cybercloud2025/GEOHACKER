@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, ShieldCheck, Settings, FlaskConical, BookOpen } from 'lucide-react';
+import { UserPlus, ShieldCheck, Settings, FlaskConical, BookOpen, MousePointerClick } from 'lucide-react';
 import hackerIcon from '../assets/hacker-icon.png';
 import adminLogo from '../assets/admin-logo.png';
 import { Link, useNavigate } from 'react-router-dom';
@@ -210,28 +210,16 @@ export const LoginPage = () => {
             {/* Superposición de cuadrícula para sensación tecnológica */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,255,0.05)_1px,transparent_1px)] bg-[size:30px_30px] z-0 pointer-events-none" />
 
-            {/* Tutorial y configuración. Ambos accesibles sin iniciar sesión:
-                las dudas y la falta de credenciales aparecen justo aquí. */}
-            <div className="absolute top-5 right-5 z-30 flex items-center gap-2">
-                <Link
-                    to="/tutorial"
-                    className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-cyan-500/30 bg-black/50 backdrop-blur
-                               text-cyan-400/80 hover:text-cyan-300 hover:border-cyan-500/60 hover:bg-cyan-500/10 transition-colors"
-                >
-                    <BookOpen className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">
-                        Cómo se usa
-                    </span>
-                </Link>
-                <Link
-                    to="/configuracion"
-                    title="Configuración"
-                    className="p-2.5 rounded-xl border border-white/10 bg-black/50 backdrop-blur
-                               text-white/40 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors"
-                >
-                    <Settings className="w-5 h-5" />
-                </Link>
-            </div>
+            {/* La configuración se deja en la esquina: es una tarea puntual.
+                El tutorial va en el centro, que es donde mira todo el mundo. */}
+            <Link
+                to="/configuracion"
+                title="Configuración"
+                className="absolute top-5 right-5 z-30 p-2.5 rounded-xl border border-white/10 bg-black/50 backdrop-blur
+                           text-white/40 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors"
+            >
+                <Settings className="w-5 h-5" />
+            </Link>
 
             {/* Aviso y tarjeta de acceso, en paralelo cuando hay ancho.
                 Apilados ocupaban tanto alto que el panel de cuentas se salía de
@@ -531,12 +519,63 @@ export const LoginPage = () => {
                     transition={{ delay: 1 }}
                     // Con el panel de cuentas debajo, este bloque se aprieta para que
                     // todo quepa en pantalla sin tener que desplazar.
-                    className={`text-center ${mostrarDemo ? 'mt-3 mb-0' : 'mt-6 mb-4 sm:absolute sm:bottom-24'}`}
+                    className={`text-center ${mostrarDemo ? 'mt-2 mb-0' : 'mt-6 mb-4 sm:absolute sm:bottom-24'}`}
                 >
                     <div className="flex items-center gap-3 text-[14px] text-cyan-400 font-mono tracking-[0.2em] font-black drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
                         <span className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
                         SYSTEM ONLINE // V.3.0.1
                     </div>
+                </motion.div>
+            )}
+
+            {/* Llamada al tutorial. Va entre el estado del sistema y las cuentas
+                porque es el punto al que llega la mirada tras leer la tarjeta de
+                acceso, y antes de decidir con qué cuenta entrar. */}
+            {!isRegistering && (
+                <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8 }}
+                    className="relative z-20 flex flex-col items-center mt-4"
+                >
+                    {/* Dedo que sube y baja señalando el botón */}
+                    <motion.div
+                        animate={{ y: [0, -7, 0] }}
+                        transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}
+                        className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.9)] mb-1"
+                    >
+                        <MousePointerClick className="w-6 h-6" />
+                    </motion.div>
+
+                    <Link to="/tutorial" className="group/tuto relative">
+                        {/* Halo que late por detrás del botón */}
+                        <motion.span
+                            aria-hidden
+                            animate={{ opacity: [0.25, 0.6, 0.25], scale: [1, 1.06, 1] }}
+                            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                            className="absolute -inset-1 rounded-2xl bg-[#39FF14]/30 blur-lg pointer-events-none"
+                        />
+                        <span
+                            className="relative flex items-center gap-2.5 px-7 py-3.5 rounded-2xl
+                                       border-2 border-[#39FF14] bg-black/70 backdrop-blur
+                                       text-[#39FF14] font-black uppercase tracking-[0.2em] text-[13px]
+                                       shadow-[0_0_25px_rgba(57,255,20,0.45)]
+                                       hover:bg-[#39FF14] hover:text-black
+                                       hover:shadow-[0_0_40px_rgba(57,255,20,0.8)]
+                                       transition-all duration-300 active:scale-[0.97]"
+                        >
+                            <BookOpen className="w-5 h-5" />
+                            Cómo se usa
+                        </span>
+                    </Link>
+
+                    <motion.p
+                        animate={{ opacity: [0.55, 1, 0.55] }}
+                        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                        className="mt-2 text-[11px] font-bold uppercase tracking-[0.25em] text-[#39FF14]/80"
+                    >
+                        Pincha aquí para ver el tutorial
+                    </motion.p>
                 </motion.div>
             )}
 
