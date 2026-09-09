@@ -62,6 +62,15 @@ const DEMO_POR_DEFECTO = texto(import.meta.env.VITE_DEMO_MODE) === 'true';
 /** Bloque de configuración, más la preferencia de mostrar cuentas de prueba. */
 interface BloqueInstalacion extends Partial<AppConfig> {
     showDemoAccounts?: boolean;
+    /**
+     * true  = los valores de la instalación mandan y no se pueden cambiar.
+     *         Es lo que quieres en la copia de un cliente: sus empleados no
+     *         deben poder desviar la aplicación a otra base de datos.
+     * false = actúan como valores por defecto. Es lo que quieres en una demo
+     *         pública: se ve funcionando al entrar, pero quien quiera puede
+     *         apuntarla a su propio proyecto para probar.
+     */
+    lockConfig?: boolean;
 }
 
 /**
@@ -173,13 +182,22 @@ export const getConfig = (): AppConfig => {
     const { overrides } = useConfigStore.getState();
     const resultado = { ...DESDE_ENTORNO };
 
+    const bloqueada = configBloqueada();
+
     CLAVES.forEach((clave) => {
         const usuario = texto(overrides[clave]);
-        if (usuario) resultado[clave] = usuario;
-
-        // La instalación tiene la última palabra.
         const instalacion = texto(DESDE_INSTALACION[clave]);
-        if (instalacion) resultado[clave] = instalacion;
+
+        if (bloqueada) {
+            // Copia de cliente: manda la instalación.
+            if (usuario) resultado[clave] = usuario;
+            if (instalacion) resultado[clave] = instalacion;
+        } else {
+            // Demo: la instalación es el valor de partida y el visitante puede
+            // cambiarlo para probar con su propia base de datos.
+            if (instalacion) resultado[clave] = instalacion;
+            if (usuario) resultado[clave] = usuario;
+        }
     });
 
     return resultado;
@@ -193,8 +211,12 @@ export const useConfig = (): AppConfig => {
 
 /** De dónde sale cada valor, para poder explicarlo en la pantalla de ajustes. */
 export const origenDe = (clave: ClaveConfig): Origen => {
-    if (texto(DESDE_INSTALACION[clave])) return 'instalacion';
-    if (texto(useConfigStore.getState().overrides[clave])) return 'usuario';
+    const instalacion = texto(DESDE_INSTALACION[clave]);
+    const usuario = texto(useConfigStore.getState().overrides[clave]);
+
+    if (configBloqueada() && instalacion) return 'instalacion';
+    if (usuario) return 'usuario';
+    if (instalacion) return 'instalacion';
     if (DESDE_ENTORNO[clave]) return 'entorno';
     return 'ninguno';
 };
@@ -218,6 +240,9 @@ export const supabaseConfigurado = (): boolean => {
     const { supabaseUrl, supabaseAnonKey } = getConfig();
     return Boolean(supabaseUrl && supabaseAnonKey);
 };
+
+/** ¿La instalación fija los valores, o solo los propone? */
+export const configBloqueada = (): boolean => DESDE_INSTALACION.lockConfig === true;
 
 /** Nombre para personalizar la copia. Configurable desde /configuracion. */
 export const nombreApp = (): string => getConfig().appName;

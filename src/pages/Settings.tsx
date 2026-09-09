@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Check, Database, Eye, EyeOff, KeyRound, Mail,
-    MapPin, RotateCcw, Save, ShieldAlert, Users,
+    ArrowLeft, Check, Database, Eye, EyeOff, FlaskConical, KeyRound, Mail,
+    MapPin, RotateCcw, Save, Users,
 } from 'lucide-react';
+import { reiniciarDemo } from '../lib/demoBackend';
 import { Button } from '../components/ui/Button';
 import {
     CAMPOS, useConfigStore, useConfig, origenDe,
@@ -80,8 +81,8 @@ export const SettingsPage = () => {
 
     const onLimpiar = () => {
         const seguro = window.confirm(
-            '¿Borrar la configuración guardada en este navegador?\n\n' +
-            'Se volverán a usar los valores que traiga la aplicación, si los hay.'
+            '¿Borrar la configuración guardada en este navegador? Se volverán a usar '
+            + ' los valores que traiga la aplicación, si los hay.'
         );
         if (!seguro) return;
         limpiar();
@@ -119,8 +120,8 @@ export const SettingsPage = () => {
                         icono={<Database className="w-5 h-5" />}
                         titulo="Base de datos"
                         detalle={supabaseConfigurado()
-                            ? 'Conectada. La aplicación puede iniciar sesión y guardar fichajes.'
-                            : 'Obligatoria. Sin ella no se puede entrar.'}
+                            ? 'Conectada a tu proyecto. Los datos se guardan en el servidor.'
+                            : 'En modo demostración: datos ficticios en este navegador.'}
                     />
                     <Estado
                         ok={googleMapsConfigurado()}
@@ -155,13 +156,41 @@ export const SettingsPage = () => {
                 )}
 
                 {!supabaseConfigurado() && (
-                    <div className="flex gap-3 p-4 mb-8 rounded-xl border border-red-500/40 bg-red-500/5">
-                        <ShieldAlert className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                        <p className="text-xs text-red-200 leading-relaxed">
-                            Falta la conexión con Supabase. Crea un proyecto gratuito en supabase.com,
-                            ejecuta <code className="text-red-300">db/schema.sql</code> en su editor SQL
-                            y pega aquí la URL y la clave anónima.
-                        </p>
+                    <div className="flex gap-3 p-4 mb-8 rounded-xl border border-cyan-500/30 bg-cyan-500/5">
+                        <FlaskConical className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+                        <div className="text-xs text-cyan-100/80 leading-relaxed flex-1">
+                            <p className="font-black uppercase tracking-widest text-cyan-400 mb-1">
+                                Modo demostración
+                            </p>
+                            <p>
+                                La aplicación funciona sobre datos ficticios guardados en este
+                                navegador. Puedes fichar, crear usuarios y validar altas: todo se
+                                comporta como en la aplicación real, pero nada sale de tu dispositivo.
+                            </p>
+                            <p className="mt-2">
+                                Para usarla de verdad, crea un proyecto gratuito en supabase.com,
+                                ejecuta <code className="text-cyan-300">db/schema.sql</code> en su editor
+                                SQL y pega abajo la URL y la clave anónima.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const seguro = window.confirm(
+                                        '¿Volver a generar los datos de demostración? Se perderán '
+                                        + ' los cambios que hayas hecho probando la aplicación.'
+                                    );
+                                    if (!seguro) return;
+                                    reiniciarDemo();
+                                    window.location.reload();
+                                }}
+                                className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-lg border border-cyan-500/40
+                                           text-cyan-400 text-[10px] font-black uppercase tracking-widest
+                                           hover:bg-cyan-500/10 transition-colors"
+                            >
+                                <RotateCcw className="w-3 h-3" />
+                                Reiniciar datos de demostración
+                            </button>
+                        </div>
                     </div>
                 )}
 

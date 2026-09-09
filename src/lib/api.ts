@@ -1,4 +1,5 @@
 import { getSupabase, supabaseConfigurado } from './supabase';
+import { demoSoporta, ejecutarDemo } from './demoBackend';
 
 /**
  * Capa única de llamada a la base de datos.
@@ -38,24 +39,37 @@ export const onSessionExpired = (handler: () => void) => {
     alCaducarSesion = handler;
 };
 
+/** Convierte el mensaje que llega del servidor en un ApiError con su código. */
+const comoApiError = (mensajeCrudo: string): ApiError => {
+    const codigo = Object.keys(MENSAJES).find((k) => mensajeCrudo.includes(k));
+    if (codigo === 'SESION_INVALIDA') alCaducarSesion?.();
+    return new ApiError(codigo ? MENSAJES[codigo] : mensajeCrudo, codigo);
+};
+
+/** ¿Estamos funcionando sobre la base de datos de demostración del navegador? */
+export const enModoDemostracion = (): boolean => !supabaseConfigurado();
+
 export async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
-    if (!supabaseConfigurado()) {
-        throw new ApiError(
-            'Falta configurar la conexión con Supabase. Ve a Configuración e introduce la URL y la clave anónima.',
-            'SIN_CONFIGURAR'
-        );
+    // Sin conexión configurada la aplicación no se queda muerta: funciona sobre
+    // una base de datos ficticia dentro del navegador, para poder recorrerla
+    // entera sin dar de alta ningún servicio.
+    if (enModoDemostracion()) {
+        if (!demoSoporta(fn)) {
+            throw new ApiError(
+                'Esta función necesita una base de datos real. Configúrala en Configuración.',
+                'SIN_CONFIGURAR'
+            );
+        }
+        try {
+            return await ejecutarDemo<T>(fn, args);
+        } catch (e) {
+            throw comoApiError(e instanceof Error ? e.message : 'Error en la demostración');
+        }
     }
 
     const { data, error } = await getSupabase().rpc(fn, args);
 
-    if (error) {
-        const raw = error.message || 'Error de conexión con el servidor';
-        const codigo = Object.keys(MENSAJES).find((k) => raw.includes(k));
-
-        if (codigo === 'SESION_INVALIDA') alCaducarSesion?.();
-
-        throw new ApiError(codigo ? MENSAJES[codigo] : raw, codigo);
-    }
+    if (error) throw comoApiError(error.message || 'Error de conexión con el servidor');
 
     return data as T;
 }

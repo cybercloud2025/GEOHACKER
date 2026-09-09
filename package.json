@@ -9,7 +9,8 @@
     "deploy": "gh-pages -d dist",
     "lint": "eslint .",
     "preview": "vite preview",
-    "db:demo": "node scripts/build-demo-sql.js"
+    "db:demo": "node scripts/build-demo-sql.js",
+    "test:demo": "esbuild src/lib/demoBackend.ts --format=esm --target=es2022 --outfile=node_modules/.tmp/demoBackend.mjs --log-level=warning && node scripts/probar-demo.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

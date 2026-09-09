@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, ShieldCheck, Settings, AlertTriangle } from 'lucide-react';
+import { UserPlus, ShieldCheck, Settings, FlaskConical } from 'lucide-react';
 import hackerIcon from '../assets/hacker-icon.png';
 import adminLogo from '../assets/admin-logo.png';
 import { Link, useNavigate } from 'react-router-dom';
@@ -227,29 +227,33 @@ export const LoginPage = () => {
             <div className="relative z-20 w-full flex flex-col items-center gap-5
                             lg:flex-row lg:items-center lg:justify-center lg:gap-6">
 
-            {/* Sin conexión configurada no hay nada que hacer: se avisa antes de
-                que el usuario pruebe un PIN y reciba un error de red. */}
+            {/* Sin base de datos configurada la aplicación no se queda muerta:
+                funciona sobre datos ficticios dentro del navegador. Es una
+                situación normal, no un error, así que no se pinta como aviso. */}
             {!hayConexion && (
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="relative z-30 w-full max-w-md p-4 rounded-2xl border border-yellow-500/40 bg-yellow-500/5 backdrop-blur-xl lg:self-center"
+                    className="relative z-30 w-full max-w-md p-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/5 backdrop-blur-xl lg:self-center"
                 >
                     <div className="flex gap-3">
-                        <AlertTriangle className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
+                        <FlaskConical className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                         <div>
-                            <p className="text-[11px] font-black uppercase tracking-widest text-yellow-400">
-                                Falta configurar la base de datos
+                            <p className="text-[11px] font-black uppercase tracking-widest text-cyan-400">
+                                Modo demostración
                             </p>
                             <p className="text-[11px] text-white/60 mt-1 leading-relaxed">
-                                Introduce la URL y la clave anónima de tu proyecto Supabase para poder entrar.
+                                Estás sobre una base de datos ficticia que vive en tu navegador, con
+                                empresas, empleados y fichajes ya cargados. Entra con cualquiera de las
+                                cuentas de abajo y recorre la aplicación entera. Nada de lo que hagas
+                                sale de este dispositivo.
                             </p>
                             <Link
                                 to="/configuracion"
-                                className="inline-block mt-3 px-3 py-1.5 rounded-lg border border-yellow-500/40 text-yellow-400
-                                           text-[10px] font-black uppercase tracking-widest hover:bg-yellow-500/10 transition-colors"
+                                className="inline-block mt-3 px-3 py-1.5 rounded-lg border border-cyan-500/40 text-cyan-400
+                                           text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500/10 transition-colors"
                             >
-                                Abrir configuración
+                                Conectar mi base de datos
                             </Link>
                         </div>
                     </div>

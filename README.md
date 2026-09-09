@@ -18,7 +18,26 @@ Puedes clonarla y desplegarla donde quieras sin heredar nada de nadie.
 
 ---
 
-## Probar la demo en 5 minutos
+## Probar la demo
+
+**Abre la aplicación y ya está.** Sin base de datos configurada funciona sobre
+datos ficticios que viven en el navegador: dos empresas con sus administradores
+y empleados, seis jornadas de historial con pausas y rutas GPS, y dos turnos
+abiertos para que el mapa en vivo tenga movimiento.
+
+Entra con cualquiera de las cuentas que aparecen bajo el formulario y recorre
+la aplicación entera: ficha, crea usuarios, valida altas, exporta informes.
+Nada sale del dispositivo, y *Configuración → Reiniciar datos de demostración*
+lo devuelve todo al estado inicial.
+
+Lo implementa [`src/lib/demoBackend.ts`](src/lib/demoBackend.ts), que reproduce
+el contrato de las 28 funciones RPC del esquema real, incluido el aislamiento
+entre empresas. `npm run test:demo` comprueba que sigue cumpliéndolo.
+
+En cuanto introduces una URL de Supabase en `/configuracion`, la aplicación
+deja de usar la demostración y habla con tu base de datos.
+
+## Montar la demo sobre una base de datos real
 
 > Usa un proyecto de Supabase **exclusivo para la demo**. El seed crea cuentas
 > con PIN conocidos y públicos: no deben convivir con datos reales.
@@ -302,6 +321,7 @@ una convención de entrada.
 | `npm run lint` | ESLint |
 | `npm run preview` | Sirve el build local |
 | `npm run db:demo` | Regenera `db/demo_full.sql` a partir del esquema y el seed |
+| `npm run test:demo` | Comprueba la base de datos de demostración del navegador |
 
 ### Dominio propio
 
@@ -333,6 +353,7 @@ public/
   config.example.json Plantilla de config.json para instalaciones
 src/
   lib/
+    demoBackend.ts    Base de datos ficticia en el navegador (modo demostración)
     config.ts         Configuración en tiempo de ejecución (claves del usuario)
     api.ts            Única puerta a la base de datos: rpc() + errores
     supabase.ts       Cliente, reconstruido si cambian las credenciales
