@@ -230,7 +230,7 @@ export const LoginPage = () => {
             {/* Columna izquierda: el cartel de demostración y, debajo, la
                 llamada al tutorial. Ese hueco quedaba vacío y es donde mejor
                 se ve la invitación, junto al texto que la explica. */}
-            <div className="w-full max-w-md flex flex-col items-center gap-4">
+            <div className="w-full max-w-md flex flex-col items-center gap-4 lg:self-stretch">
 
                 {/* Sin base de datos configurada la aplicación no se queda muerta:
                     funciona sobre datos ficticios dentro del navegador. Es una
@@ -265,55 +265,59 @@ export const LoginPage = () => {
                     </motion.div>
                 )}
 
-                {/* Llamada al tutorial, debajo del cartel que la contextualiza. */}
-                {!isRegistering && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.8 }}
-                        className="relative z-20 flex flex-col items-center"
-                    >
-                        {/* Dedo que sube y baja señalando el botón */}
+                {/* El hueco entre el cartel y el final de la tarjeta de acceso se
+                    reparte con flex-1, de modo que la llamada al tutorial queda
+                    centrada en él sea cual sea la altura de las dos columnas. */}
+                <div className="w-full flex-1 flex items-center justify-center">
+                    {!isRegistering && (
                         <motion.div
-                            animate={{ y: [0, -7, 0] }}
-                            transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}
-                            className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.9)] mb-1"
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.8 }}
+                            className="relative z-20 flex flex-col items-center"
                         >
-                            <MousePointerClick className="w-6 h-6" />
-                        </motion.div>
-
-                        <Link to="/tutorial" className="group/tuto relative">
-                            {/* Halo que late por detrás del botón */}
-                            <motion.span
-                                aria-hidden
-                                animate={{ opacity: [0.25, 0.6, 0.25], scale: [1, 1.06, 1] }}
-                                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                                className="absolute -inset-1 rounded-2xl bg-[#39FF14]/30 blur-lg pointer-events-none"
-                            />
-                            <span
-                                className="relative flex items-center gap-2.5 px-7 py-3.5 rounded-2xl
-                                           border-2 border-[#39FF14] bg-black/70 backdrop-blur
-                                           text-[#39FF14] font-black uppercase tracking-[0.2em] text-[13px]
-                                           shadow-[0_0_25px_rgba(57,255,20,0.45)]
-                                           hover:bg-[#39FF14] hover:text-black
-                                           hover:shadow-[0_0_40px_rgba(57,255,20,0.8)]
-                                           transition-all duration-300 active:scale-[0.97]"
+                            {/* Dedo que sube y baja señalando el botón */}
+                            <motion.div
+                                animate={{ y: [0, -7, 0] }}
+                                transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}
+                                className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.9)] mb-1"
                             >
-                                <BookOpen className="w-5 h-5" />
-                                Cómo se usa
-                            </span>
-                        </Link>
+                                <MousePointerClick className="w-6 h-6" />
+                            </motion.div>
 
-                        <motion.p
-                            animate={{ opacity: [0.55, 1, 0.55] }}
-                            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                            className="mt-2 text-[11px] font-bold uppercase tracking-[0.25em] text-[#39FF14]/80"
-                        >
-                            Pincha aquí para ver el tutorial
-                        </motion.p>
-                    </motion.div>
-                )}
+                            <Link to="/tutorial" className="group/tuto relative">
+                                {/* Halo que late por detrás del botón */}
+                                <motion.span
+                                    aria-hidden
+                                    animate={{ opacity: [0.25, 0.6, 0.25], scale: [1, 1.06, 1] }}
+                                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                                    className="absolute -inset-1 rounded-2xl bg-[#39FF14]/30 blur-lg pointer-events-none"
+                                />
+                                <span
+                                    className="relative flex items-center gap-2.5 px-7 py-3.5 rounded-2xl
+                                               border-2 border-[#39FF14] bg-black/70 backdrop-blur
+                                               text-[#39FF14] font-black uppercase tracking-[0.2em] text-[13px]
+                                               shadow-[0_0_25px_rgba(57,255,20,0.45)]
+                                               hover:bg-[#39FF14] hover:text-black
+                                               hover:shadow-[0_0_40px_rgba(57,255,20,0.8)]
+                                               transition-all duration-300 active:scale-[0.97]"
+                                >
+                                    <BookOpen className="w-5 h-5" />
+                                    Cómo se usa
+                                </span>
+                            </Link>
 
+                            <motion.p
+                                animate={{ opacity: [0.55, 1, 0.55] }}
+                                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                                className="mt-2 text-[11px] font-bold uppercase tracking-[0.25em] text-[#39FF14]/80"
+                            >
+                                Pincha aquí para ver el tutorial
+                            </motion.p>
+                        </motion.div>
+                    )}
+
+                </div>
             </div>
 
             {/* TARJETA PRINCIPAL */}
