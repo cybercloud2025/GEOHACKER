@@ -30,13 +30,14 @@ export const DemoAccounts = ({ onEntrar, cargando }: DemoAccountsProps) => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="w-full max-w-md mt-6 mb-10 relative z-20"
+            // Estrecho en móvil (una columna) y ancho en escritorio, donde caben tres.
+            className="w-full max-w-md lg:max-w-4xl mt-4 mb-6 relative z-20"
         >
             <div className="bg-black/70 backdrop-blur-xl border border-cyan-500/20 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,247,255,0.06)]">
                 <button
                     type="button"
                     onClick={() => setAbierto((v) => !v)}
-                    className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.03] transition-colors"
+                    className="w-full flex items-center justify-between px-5 py-2.5 hover:bg-white/[0.03] transition-colors"
                 >
                     <div className="flex items-center gap-2.5 min-w-0">
                         <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
@@ -58,53 +59,53 @@ export const DemoAccounts = ({ onEntrar, cargando }: DemoAccountsProps) => {
                             transition={{ duration: 0.25 }}
                             className="overflow-hidden"
                         >
-                            <div className="px-4 pb-4 space-y-2">
-                                <p className="text-[10px] text-muted leading-relaxed px-1 pb-1">
-                                    Pulsa una cuenta para entrar directamente.
-                                </p>
-
-                                {CUENTAS_DEMO.map((cuenta) => (
-                                    <button
-                                        key={cuenta.pin}
-                                        type="button"
-                                        disabled={cargando}
-                                        onClick={() => onEntrar(cuenta.pin)}
-                                        className={`w-full text-left p-3 rounded-xl border transition-all duration-200
-                                                    disabled:opacity-40 disabled:cursor-not-allowed
-                                                    group/cuenta ${ESTILO_ROL[cuenta.rol]}`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="shrink-0">{ICONO[cuenta.rol]}</div>
-
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className="text-[13px] font-black tracking-wide text-white">
-                                                        {cuenta.nombre}
-                                                    </span>
-                                                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">
+                            <div className="px-3 pb-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    {CUENTAS_DEMO.map((cuenta) => (
+                                        <button
+                                            key={cuenta.pin}
+                                            type="button"
+                                            disabled={cargando}
+                                            onClick={() => onEntrar(cuenta.pin)}
+                                            className={`text-left p-3 rounded-xl border transition-all duration-200
+                                                        flex flex-col h-full
+                                                        disabled:opacity-40 disabled:cursor-not-allowed
+                                                        group/cuenta ${ESTILO_ROL[cuenta.rol]}`}
+                                        >
+                                            {/* Cabecera: rol a la izquierda, PIN a la derecha */}
+                                            <div className="flex items-center justify-between gap-2 mb-2">
+                                                <div className="flex items-center gap-1.5 min-w-0">
+                                                    <span className="shrink-0">{ICONO[cuenta.rol]}</span>
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-70 truncate">
                                                         {ETIQUETA_ROL[cuenta.rol]}
                                                     </span>
                                                 </div>
-                                                <p className="text-[10px] text-white/45 truncate">{cuenta.empresa}</p>
-                                            </div>
-
-                                            <div className="flex items-center gap-2 shrink-0">
-                                                <span className="font-mono text-[13px] font-bold tracking-[0.15em]">
-                                                    {cuenta.pin}
+                                                <span className="flex items-center gap-1.5 shrink-0">
+                                                    <LogIn className="w-3 h-3 opacity-0 group-hover/cuenta:opacity-70 transition-opacity" />
+                                                    <span className="font-mono text-[13px] font-bold tracking-[0.1em]">
+                                                        {cuenta.pin}
+                                                    </span>
                                                 </span>
-                                                <LogIn className="w-3.5 h-3.5 opacity-0 group-hover/cuenta:opacity-100 transition-opacity" />
                                             </div>
-                                        </div>
 
-                                        <p className="text-[10px] text-white/35 mt-1.5 leading-relaxed">
-                                            {cuenta.descripcion}
-                                        </p>
-                                    </button>
-                                ))}
+                                            <div className="text-[13px] font-black tracking-wide text-white leading-tight">
+                                                {cuenta.nombre}
+                                            </div>
+                                            <p className="text-[10px] text-white/45 truncate mb-1.5">
+                                                {cuenta.empresa}
+                                            </p>
 
-                                <p className="text-[10px] text-yellow-500/60 leading-relaxed px-1 pt-2 border-t border-white/5">
-                                    Requiere haber ejecutado <code className="text-yellow-500/80">db/demo_seed.sql</code>.
-                                    Este panel se oculta desde Configuración.
+                                            {/* flex-1 empuja el pie hacia abajo: todas las tarjetas de una
+                                                fila quedan alineadas aunque el texto tenga distinto largo. */}
+                                            <p className="text-[10px] text-white/35 leading-snug line-clamp-2 flex-1">
+                                                {cuenta.descripcion}
+                                            </p>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <p className="text-[10px] text-yellow-500/60 px-1 pt-2 mt-2 border-t border-white/5">
+                                    Requiere <code className="text-yellow-500/80">db/demo_seed.sql</code>. Se oculta desde Configuración.
                                 </p>
                             </div>
                         </motion.div>
